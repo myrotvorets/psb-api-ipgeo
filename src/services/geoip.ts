@@ -81,25 +81,26 @@ export class GeoIPService {
             // When the IP address belongs to something like a military base,
             // the `represented_country` is the country that the base represents.
 
-            if (typeof response.represented_country !== 'undefined') {
-                cc = response.represented_country.iso_code;
-                country = response.represented_country.names.en;
-                id = response.represented_country.geoname_id;
-            } else if (typeof response.country !== 'undefined') {
-                cc = response.country.iso_code;
-                country = response.country.names.en;
-                id = response.country.geoname_id;
-            } else if (typeof response.registered_country !== 'undefined') {
-                // ! This is probably a dead branch. So far, so far, I was unable to find a record with registered_country and without country
-                cc = response.registered_country.iso_code;
-                country = response.registered_country.names.en;
-                id = response.registered_country.geoname_id;
-            }
+            cc =
+                response.represented_country?.iso_code ||
+                response.country?.iso_code ||
+                response.registered_country?.iso_code ||
+                null;
 
-            if (typeof response.city !== 'undefined') {
-                city = response.city.names.en;
-                id = response.city.geoname_id;
-            }
+            country =
+                response.represented_country?.names.en ||
+                response.country?.names.en ||
+                response.registered_country?.names.en ||
+                null;
+
+            id =
+                response.city?.geoname_id ||
+                response.represented_country?.geoname_id ||
+                response.country?.geoname_id ||
+                response.registered_country?.geoname_id ||
+                null;
+
+            city = response.city?.names.en || null;
         }
 
         return { cc, country, city, id };
