@@ -33,7 +33,7 @@ RUN \
 COPY healthcheck.sh entrypoint.sh /usr/local/bin/
 HEALTHCHECK --interval=60s --timeout=10s --start-period=5s --retries=3 CMD ["/usr/local/bin/healthcheck.sh"]
 USER nobody:nobody
-ENTRYPOINT ["/usr/bin/node", "index.js"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 COPY --chown=nobody:nobody ./src/specs ./specs
 COPY --chown=nobody:nobody --from=build /srv/service/dist/ ./
 COPY --chown=nobody:nobody --from=deps /srv/service/node_modules ./node_modules
