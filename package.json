@@ -19,7 +19,6 @@
   "dependencies": {
     "@cloudnative/health-connect": "^2.1.0",
     "@myrotvorets/create-server": "^1.0.2",
-    "@myrotvorets/express-async-middleware-wrapper": "^1.0.19",
     "@myrotvorets/express-microservice-middlewares": "^1.4.1",
     "@myrotvorets/oav-installer": "^2.2.1",
     "@opentelemetry/exporter-zipkin": "^0.13.0",
