@@ -4,11 +4,15 @@ on:
   schedule:
     - cron: '0 10 * * *'
   push:
-    branches:
-      - '**'
+    paths-ignore:
+      - '.github/**'
+      - 'test/**'
     tags:
       - '*.*.*'
   pull_request:
+    paths-ignore:
+      - '.github/**'
+      - 'test/**'
 
 jobs:
   docker:
