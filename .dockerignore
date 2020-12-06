@@ -1,0 +1,12 @@
+*
+!.npmrc
+!.docker
+!src
+!package.json
+!package-lock.json
+!tsconfig.json
+!entrypoint.sh
+!healthcheck.sh
+
+src/**/.git
+*.d.ts

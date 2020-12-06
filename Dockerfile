@@ -1,0 +1,39 @@
+FROM myrotvorets/node-current-build:latest AS base
+USER root
+WORKDIR /srv/service
+RUN chown nobody:nobody /srv/service
+USER nobody:nobody
+COPY --chown=nobody:nobody ./package.json ./package-lock.json ./tsconfig.json .npmrc ./
+
+FROM base AS deps
+RUN npm ci --only=prod
+
+FROM base AS build
+RUN \
+    npm r --package-lock-only \
+        eslint @myrotvorets/eslint-config-myrotvorets-ts @typescript-eslint/eslint-plugin eslint-plugin-import eslint-plugin-prettier prettier eslint-plugin-sonarjs eslint-plugin-jest \
+        @types/jest jest ts-jest merge supertest @types/supertest jest-sonar-reporter \
+        nodemon && \
+    npm ci --ignore-scripts && \
+    rm -f .npmrc && \
+    npm rebuild && \
+    npm run prepare --if-present
+COPY --chown=nobody:nobody ./src ./src
+RUN npm run build -- --declaration false
+
+FROM myrotvorets/node-current-min
+USER root
+WORKDIR /srv/service
+RUN \
+    chown nobody:nobody /srv/service && \
+    apk add --no-cache openssl && \
+    install -d -o nobody -g nobody /usr/share/GeoIP && \
+    wget https://psb4ukr.natocdn.net/geoip/GeoIP2-City.mmdb.enc -U "Mozilla/5.0" -O /usr/share/GeoIP2-City.mmdb.enc && \
+    wget https://psb4ukr.natocdn.net/geoip/GeoIP2-ISP.mmdb.enc -U "Mozilla/5.0" -O /usr/share/GeoIP2-ISP.mmdb.enc
+COPY healthcheck.sh entrypoint.sh /usr/local/bin/
+HEALTHCHECK --interval=60s --timeout=10s --start-period=5s --retries=3 CMD ["/usr/local/bin/healthcheck.sh"]
+USER nobody:nobody
+ENTRYPOINT ["/usr/bin/node", "index.js"]
+COPY --chown=nobody:nobody ./src/specs ./specs
+COPY --chown=nobody:nobody --from=build /srv/service/dist/ ./
+COPY --chown=nobody:nobody --from=deps /srv/service/node_modules ./node_modules
