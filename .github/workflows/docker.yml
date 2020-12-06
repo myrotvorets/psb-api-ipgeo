@@ -4,12 +4,16 @@ on:
   schedule:
     - cron: '0 10 * * *'
   push:
+    branches:
+      - master
     paths-ignore:
       - '.github/**'
       - 'test/**'
     tags:
       - '*.*.*'
   pull_request:
+    branches:
+      - master
     paths-ignore:
       - '.github/**'
       - 'test/**'
