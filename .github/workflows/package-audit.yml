@@ -52,7 +52,7 @@ jobs:
           node-version: ${{ matrix.node_version }}
           registry-url: https://npm.pkg.github.com
 
-      - name: Cache node modules (source)
+      - name: Cache node modules
         uses: actions/cache@v2
         env:
           cache-name: cache-node-modules
@@ -62,14 +62,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.node_version }}-
             ${{ runner.os }}-build-${{ env.cache-name }}-
-
-      - name: Cache node modules (retirejs)
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-retirejs
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.node_version }}
 
       - name: Install dependencies
         run: npm ci --ignore-scripts
