@@ -26,7 +26,7 @@
     "@opentelemetry/plugin-express": "^0.11.0",
     "@opentelemetry/plugin-http": "^0.13.0",
     "@opentelemetry/plugin-https": "^0.13.0",
-    "@opentelemetry/tracing": "^0.13.0",
+    "@opentelemetry/tracing": "^0.14.0",
     "envalid": "^6.0.2",
     "express": "^4.17.1",
     "express-openapi-validator": "^4.9.0",
