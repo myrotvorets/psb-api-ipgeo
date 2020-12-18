@@ -15,4 +15,6 @@ set -e
 [ -f /usr/share/GeoIP/GeoIP2-ISP.mmdb ] || \
     /usr/bin/openssl enc -d -aes-256-cbc -pbkdf2 -iter 20000 -in /usr/share/GeoIP/GeoIP2-ISP.mmdb.enc -out /usr/share/GeoIP/GeoIP2-ISP.mmdb -kfile /run/secrets/geoip-encryption-password
 
+rm -f /run/secrets/geoip-encryption-password || true
+
 exec /usr/bin/node index.js
