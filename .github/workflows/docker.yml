@@ -21,7 +21,8 @@ on:
 
 jobs:
   docker:
-    if: "!contains(github.event.head_commit.message, '[ci skip]')"
+    if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message, '[ci skip]') }}
+    name: Build Docker image
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -32,7 +33,7 @@ jobs:
       - name: Prepare
         id: prep
         run: |
-          DOCKER_IMAGE=myrotvorets/psb-api-ipgeo
+          DOCKER_IMAGE=myrotvorets/psb-api-dzhura
           VERSION=noop
           if [ "${{ github.event_name }}" = "schedule" ]; then
             VERSION=nightly
@@ -65,6 +66,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_LOGIN }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+        if: ${{ github.event_name != 'pull_request' }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1

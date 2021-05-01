@@ -1,43 +1,45 @@
-name: Build and Test CI
+name: Build and Test
 
 on:
   push:
     branches:
-      - master
-  pull_request:
-    branches:
-      - master
+      - '**'
   workflow_dispatch:
 
 jobs:
-  build-and-test:
-    if: "!contains(github.event.head_commit.message, '[ci skip]')"
+  build:
     runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.head_commit.message, '[ci skip]') || github.event_name == 'workflow_dispatch' }}
     strategy:
       matrix:
-        node_version: ["12", "14"]
-
+        node:
+          - '14'
+          - '16'
+    name: Build and test (Node ${{ matrix.node }})
     steps:
-      - name: Checkout
+      - name: Check out the code
         uses: actions/checkout@v2
         with:
           submodules: true
 
-      - name: Setup Node.js environment
+      - name: Set up Node.js environment
         uses: actions/setup-node@v2.1.5
         with:
-          node-version: ${{ matrix.node_version }}
+          node-version: ${{ matrix.node }}
           registry-url: https://npm.pkg.github.com
 
-      - name: Cache node modules
+      - name: Update npm
+        run: npm i -g npm@latest
+
+      - name: Cache Node modules
         uses: actions/cache@v2.1.5
         env:
           cache-name: cache-node-modules
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.node_version }}-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.node }}-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.node_version }}-
+            ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.node }}-
             ${{ runner.os }}-build-${{ env.cache-name }}-
 
       - name: Install dependencies
@@ -50,66 +52,5 @@ jobs:
 
       - name: Run tests
         run: npm test
-
-      - name: Save coverage/lcov.info
-        if: ${{ matrix.node_version == '14' }}
-        uses: actions/upload-artifact@v2
-        with:
-          name: coverage ${{ matrix.node-version }}
-          path: coverage/lcov.info
-          retention-days: 1
-
-      - name: Save test-report.xml
-        if: ${{ matrix.node_version == '14' }}
-        uses: actions/upload-artifact@v2
-        with:
-          name: test-report ${{ matrix.node-version }}
-          path: test-report.xml
-          retention-days: 1
-
-  sonarcloud:
-    needs: build-and-test
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node_version: ["14"]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          submodules: true
-          fetch-depth: 0
-
-      - name: Download coverage/lcov.info
-        uses: actions/download-artifact@v2
-        with:
-          name: coverage ${{ matrix.node-version }}
-          path: coverage
-
-      - name: Download test-report.xml
-        uses: actions/download-artifact@v2
-        with:
-          name: test-report ${{ matrix.node-version }}
-
-      - name: Fix paths in test-report.xml
-        run: sed -i "s@$(pwd)@/github/workspace@g" test-report.xml
-
-      - run: ls -lhaR
-
-      - name: Retrieve information from package.json
-        uses: myrotvorets/info-from-package-json-action@1.0.4
-        id: ver
-
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.projectName=${{ steps.ver.outputs.packageName }}
-            -Dsonar.projectVersion=${{ steps.ver.outputs.packageVersion }}
-            -Dsonar.links.homepage=${{ steps.ver.outputs.packageHomepage }}
-            -Dsonar.links.issue=${{ steps.ver.outputs.packageBugsUrl }}
-            -Dsonar.links.scm=${{ steps.ver.outputs.packageScmUrl }}
+          COLLECT_COVERAGE: "0"
