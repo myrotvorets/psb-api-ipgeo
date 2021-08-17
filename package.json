@@ -22,7 +22,7 @@
     "@myrotvorets/express-microservice-middlewares": "^1.4.1",
     "@myrotvorets/oav-installer": "^2.2.1",
     "@myrotvorets/opentelemetry-configurator": "^2.0.1",
-    "envalid": "^7.0.0",
+    "envalid": "^7.2.1",
     "express": "^4.17.1",
     "express-openapi-validator": "^4.10.11",
     "maxmind": "^4.3.0",
