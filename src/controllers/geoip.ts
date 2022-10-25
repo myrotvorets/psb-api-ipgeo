@@ -9,6 +9,7 @@ interface GeolocateParams extends Record<string, string> {
 function countryHandler(service: GeoIPService): RequestHandler {
     return (req: Request, res: Response): void => {
         const response = service.geolocate(req.ip);
+        res.header('Cache-Control', 'public, max-age=86400');
         res.json({
             success: true,
             response: {
