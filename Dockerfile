@@ -6,7 +6,7 @@ USER nobody:nobody
 COPY --chown=nobody:nobody ./package.json ./package-lock.json ./tsconfig.json .npmrc ./
 
 FROM base AS deps
-RUN npm ci --only=prod
+RUN npm ci --omit=dev
 
 FROM base AS build
 RUN \
