@@ -52,7 +52,7 @@ describe('GeoIPController', () => {
                     expect(body.success).toBe(false);
                     expect(body.status).toBe(400);
                     expect(body.code).toBe('BAD_REQUEST');
-                    expect(body.message).toContain('request.params.ip');
+                    expect(body.message).toContain('request/params/ip');
                 });
         });
     });
