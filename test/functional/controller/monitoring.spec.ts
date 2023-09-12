@@ -1,10 +1,10 @@
-import express from 'express';
+import express, { type Express } from 'express';
 import request from 'supertest';
-import monitoringController, { healthChecker } from '../../../src/controllers/monitoring';
+import monitoringController, { healthChecker } from '../../../src/controllers/monitoring.mjs';
 
-let app: express.Express;
+let app: Express;
 
-function buildApp(): express.Express {
+function buildApp(): Express {
     const application = express();
     application.disable('x-powered-by');
     application.use('/monitoring', monitoringController());
@@ -32,7 +32,7 @@ describe('MonitoringController', () => {
         it('should fail when shutdown requested', () => checker503('live'));
     });
 
-    describe('Readyness Check', () => {
+    describe('Readiness Check', () => {
         it('should succeed', () => checker200('ready'));
         it('should fail when shutdown requested', () => checker503('ready'));
     });

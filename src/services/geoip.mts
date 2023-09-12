@@ -1,4 +1,4 @@
-import maxmind, { CityResponse, IspResponse, Reader } from 'maxmind';
+import { type CityResponse, type IspResponse, Reader, open } from 'maxmind';
 
 export interface GeoCityResponse {
     cc: string | null;
@@ -25,36 +25,30 @@ export class GeoIPService {
     private _city: Reader<CityResponse> | undefined;
     private _isp: Reader<IspResponse> | undefined;
 
-    public setCityDatabase(file: string): Promise<void> {
+    public async setCityDatabase(file: string): Promise<void> {
         if (file) {
-            return maxmind
-                .open<CityResponse>(file, { watchForUpdates: false })
-                .then((reader): void => {
-                    this._city = reader;
-                })
-                .catch(() => {
-                    this._city = undefined;
-                });
+            try {
+                this._city = await open<CityResponse>(file, { watchForUpdates: false });
+                return;
+            } catch {
+                /* Do nothing */
+            }
         }
 
         this._city = undefined;
-        return Promise.resolve();
     }
 
-    public setISPDatabase(file: string): Promise<void> {
+    public async setISPDatabase(file: string): Promise<void> {
         if (file) {
-            return maxmind
-                .open<IspResponse>(file, { watchForUpdates: false })
-                .then((reader): void => {
-                    this._isp = reader;
-                })
-                .catch(() => {
-                    this._isp = undefined;
-                });
+            try {
+                this._isp = await open<IspResponse>(file, { watchForUpdates: false });
+                return;
+            } catch (e) {
+                /* Do nothing */
+            }
         }
 
         this._isp = undefined;
-        return Promise.resolve();
     }
 
     public geolocate(ip: string): GeoResponse {
@@ -112,7 +106,7 @@ export class GeoIPService {
             autonomous_system_organization: asnOrg = null,
             isp = null,
             organization: org = null,
-        } = response || {};
+        } = response ?? {};
 
         return { asn, asnOrg, isp, org };
     }

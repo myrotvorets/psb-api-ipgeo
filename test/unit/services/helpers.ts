@@ -1,5 +1,5 @@
-import { CityResponse } from 'maxmind';
-import { GeoResponse } from '../../../src/services/geoip';
+import type { CityResponse } from 'maxmind';
+import type { GeoResponse } from '../../../src/services/geoip.mjs';
 
 export const emptyGeoResponse: GeoResponse = {
     cprefix: 0,

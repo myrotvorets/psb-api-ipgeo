@@ -1,6 +1,6 @@
 /* istanbul ignore file */
 
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import { OpenTelemetryConfigurator } from '@myrotvorets/opentelemetry-configurator';
 
 if (+(process.env.ENABLE_TRACING || 0)) {
