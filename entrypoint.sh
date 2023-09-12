@@ -17,4 +17,4 @@ set -e
 
 rm -f /run/secrets/geoip-encryption-password || true
 
-exec /usr/bin/node index.js
+exec /usr/bin/node index.mjs
