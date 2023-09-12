@@ -2,7 +2,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import express, { type Express } from 'express';
 import request from 'supertest';
-import { ErrorResponse } from '@myrotvorets/express-microservice-middlewares';
+import type { ErrorResponse } from '@myrotvorets/express-microservice-middlewares';
 import { environment } from '../../../src/lib/environment.mjs';
 import { configureApp } from '../../../src/server.mjs';
 

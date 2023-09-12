@@ -1,4 +1,4 @@
-import { Request, RequestHandler, Response, Router } from 'express';
+import { type Request, type RequestHandler, type Response, Router } from 'express';
 import { GeoIPService } from '../services/geoip.mjs';
 import { environment } from '../lib/environment.mjs';
 
