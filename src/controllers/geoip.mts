@@ -1,6 +1,6 @@
 import { Request, RequestHandler, Response, Router } from 'express';
-import { GeoIPService } from '../services/geoip';
-import { environment } from '../lib/environment';
+import { GeoIPService } from '../services/geoip.mjs';
+import { environment } from '../lib/environment.mjs';
 
 interface GeolocateParams extends Record<string, string> {
     ip: string;

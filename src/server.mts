@@ -1,24 +1,29 @@
-import express from 'express';
-import { join } from 'path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import express, { type Express } from 'express';
 import { installOpenApiValidator } from '@myrotvorets/oav-installer';
 import { errorMiddleware, notFoundMiddleware } from '@myrotvorets/express-microservice-middlewares';
 import { createServer } from '@myrotvorets/create-server';
 import morgan from 'morgan';
 
-import { environment } from './lib/environment';
+import { environment } from './lib/environment.mjs';
 
-import monitoringController from './controllers/monitoring';
-import geoipController from './controllers/geoip';
+import monitoringController from './controllers/monitoring.mjs';
+import geoipController from './controllers/geoip.mjs';
 
-export async function configureApp(app: express.Express): Promise<void> {
+export async function configureApp(app: Express): Promise<void> {
     const env = environment();
 
-    await installOpenApiValidator(join(__dirname, 'specs', 'ipgeo.yaml'), app, env.NODE_ENV);
+    await installOpenApiValidator(
+        join(dirname(fileURLToPath(import.meta.url)), 'specs', 'ipgeo.yaml'),
+        app,
+        env.NODE_ENV,
+    );
     app.use(await geoipController(), notFoundMiddleware, errorMiddleware);
 }
 
 /* istanbul ignore next */
-export function setupApp(): express.Express {
+export function setupApp(): Express {
     const app = express();
     app.set('strict routing', true);
     app.set('x-powered-by', false);

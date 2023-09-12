@@ -1,6 +1,6 @@
-import * as maxmind from 'maxmind';
-import { CityResponse } from 'maxmind';
-import { GeoIPService, GeoResponse } from '../../../src/services/geoip';
+import { jest } from '@jest/globals';
+import type { CityResponse, Reader } from 'maxmind';
+import type { GeoIPService, GeoResponse } from '../../../src/services/geoip.mjs';
 import {
     cityResponseWithCountry,
     cityResponseWithRegisteredCountry,
@@ -11,19 +11,28 @@ import {
     geoResponseWithRepresentedCountry,
 } from './helpers';
 
-jest.mock('maxmind');
+const mockedMaxmindOpen = jest.fn<() => Promise<Reader<unknown>>>();
+const mockedGetWithPrefixLength = jest.fn<(ip: string) => [unknown, number]>();
+const mockedReader = function (_: Buffer): Reader<unknown> {
+    return {
+        getWithPrefixLength: mockedGetWithPrefixLength,
+    } as unknown as Reader<unknown>;
+};
+
+jest.unstable_mockModule('maxmind', () => {
+    return {
+        open: mockedMaxmindOpen,
+    };
+});
+
+await import('maxmind');
+const geoip = await import('../../../src/services/geoip.mjs');
 
 let service: GeoIPService;
-const mockedMaxmindOpen = maxmind.open as jest.MockedFunction<typeof maxmind.open>;
-const mockedReader = maxmind.Reader as jest.MockedClass<typeof maxmind.Reader>;
-// eslint-disable-next-line @typescript-eslint/unbound-method
-const mockedGetWithPrefixLength = mockedReader.prototype.getWithPrefixLength as jest.MockedFunction<
-    typeof mockedReader.prototype.getWithPrefixLength
->;
 
 beforeEach(() => {
     jest.resetAllMocks();
-    service = new GeoIPService();
+    service = new geoip.GeoIPService();
 });
 
 describe('GeoIPService', () => {
@@ -34,7 +43,7 @@ describe('GeoIPService', () => {
         });
 
         it('should accept empty values', () => {
-            mockedMaxmindOpen.mockResolvedValueOnce(new mockedReader(Buffer.from('')));
+            mockedMaxmindOpen.mockResolvedValueOnce(mockedReader(Buffer.from('')));
             return expect(service.setCityDatabase('')).resolves.toBeUndefined();
         });
     });
@@ -46,14 +55,14 @@ describe('GeoIPService', () => {
         });
 
         it('should accept empty values', () => {
-            mockedMaxmindOpen.mockResolvedValueOnce(new mockedReader(Buffer.from('')));
+            mockedMaxmindOpen.mockResolvedValueOnce(mockedReader(Buffer.from('')));
             return expect(service.setISPDatabase('')).resolves.toBeUndefined();
         });
     });
 
     describe('geolocate()', () => {
         beforeEach(() => {
-            mockedMaxmindOpen.mockResolvedValue(new mockedReader(Buffer.from('')));
+            mockedMaxmindOpen.mockResolvedValue(mockedReader(Buffer.from('')));
             return Promise.all([service.setCityDatabase('blah'), service.setISPDatabase('blah')]);
         });
 
