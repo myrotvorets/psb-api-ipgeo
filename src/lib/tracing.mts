@@ -8,6 +8,6 @@ if (+(process.env.ENABLE_TRACING || 0)) {
         serviceName: 'psb-api-ipgeo',
     });
 
-    configurator.start().catch((e) => console.error('Failed to initialize OpenTelemetry:', e));
+    configurator.start();
     EventEmitter.defaultMaxListeners += 5;
 }
