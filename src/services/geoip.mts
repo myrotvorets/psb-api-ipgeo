@@ -25,30 +25,32 @@ export class GeoIPService {
     private _city: Reader<CityResponse> | undefined;
     private _isp: Reader<IspResponse> | undefined;
 
-    public async setCityDatabase(file: string): Promise<void> {
+    public async setCityDatabase(file: string): Promise<boolean> {
         if (file) {
             try {
                 this._city = await open<CityResponse>(file, { watchForUpdates: false });
-                return;
+                return true;
             } catch {
                 /* Do nothing */
             }
         }
 
         this._city = undefined;
+        return false;
     }
 
-    public async setISPDatabase(file: string): Promise<void> {
+    public async setISPDatabase(file: string): Promise<boolean> {
         if (file) {
             try {
                 this._isp = await open<IspResponse>(file, { watchForUpdates: false });
-                return;
-            } catch (e) {
+                return true;
+            } catch {
                 /* Do nothing */
             }
         }
 
         this._isp = undefined;
+        return false;
     }
 
     public geolocate(ip: string): GeoResponse {

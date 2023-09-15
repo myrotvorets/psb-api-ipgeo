@@ -1,24 +1,23 @@
+import { afterEach, before, beforeEach, describe, it } from 'mocha';
 import express, { type Express } from 'express';
 import request from 'supertest';
-import monitoringController, { healthChecker } from '../../../src/controllers/monitoring.mjs';
+import { healthChecker, monitoringController } from '../../../src/controllers/monitoring.mjs';
 
 let app: Express;
 
-function buildApp(): Express {
-    const application = express();
-    application.disable('x-powered-by');
-    application.use('/monitoring', monitoringController());
-    return application;
-}
-
-afterEach(() => process.removeAllListeners('SIGTERM'));
-
-beforeEach(() => {
-    app = buildApp();
-    healthChecker.shutdownRequested = false;
-});
-
 describe('MonitoringController', () => {
+    before(() => {
+        app = express();
+        app.disable('x-powered-by');
+        app.use('/monitoring', monitoringController());
+    });
+
+    beforeEach(() => {
+        healthChecker.shutdownRequested = false;
+    });
+
+    afterEach(() => process.removeAllListeners('SIGTERM'));
+
     const checker200 = (endpoint: string): Promise<unknown> =>
         request(app).get(`/monitoring/${endpoint}`).expect('Content-Type', /json/u).expect(200);
 

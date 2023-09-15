@@ -8,14 +8,13 @@ import {
 import { Router } from 'express';
 import { addJsonContentTypeMiddleware } from '@myrotvorets/express-microservice-middlewares';
 
-export let healthChecker = new HealthChecker();
+export const healthChecker = new HealthChecker();
 
-export default function (): Router {
+export function monitoringController(): Router {
     const router = Router();
 
     const shutdownCheck = new ShutdownCheck('SIGTERM', (): Promise<void> => Promise.resolve());
 
-    healthChecker = new HealthChecker();
     healthChecker.registerShutdownCheck(shutdownCheck);
 
     router.use(addJsonContentTypeMiddleware);

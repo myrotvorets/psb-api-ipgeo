@@ -29,7 +29,7 @@ function geolocateHandler(service: GeoIPService): RequestHandler<GeolocateParams
     };
 }
 
-export default async function (): Promise<Router> {
+export async function geoIPController(): Promise<Router> {
     const env = environment();
     const service = new GeoIPService();
     await Promise.all([service.setCityDatabase(env.GEOIP_CITY_FILE), service.setISPDatabase(env.GEOIP_ISP_FILE)]);

@@ -1,5 +1,7 @@
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { afterEach, before, describe, it } from 'mocha';
+import { expect } from 'chai';
 import express, { type Express } from 'express';
 import request from 'supertest';
 import type { ErrorResponse } from '@myrotvorets/express-microservice-middlewares';
@@ -9,49 +11,42 @@ import { configureApp } from '../../../src/server.mjs';
 let app: Express;
 const env = { ...process.env };
 
-async function buildApp(): Promise<Express> {
-    process.env = {
-        NODE_ENV: 'test',
-        PORT: '3030',
-        GEOIP_CITY_FILE: join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'GeoIP2-City-Test.mmdb'),
-        GEOIP_ISP_FILE: join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'GeoIP2-ISP-Test.mmdb'),
-    };
-
-    environment();
-
-    const application = express();
-    application.disable('x-powered-by');
-    application.set('trust proxy', true);
-    await configureApp(application);
-    return application;
-}
-
-beforeEach(() => {
-    return buildApp().then((application) => {
-        app = application;
-    });
-});
-
-afterEach(() => (process.env = { ...env }));
-
 describe('GeoIPController', () => {
+    before(() => {
+        process.env = {
+            NODE_ENV: 'test',
+            PORT: '3030',
+            GEOIP_CITY_FILE: join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'GeoIP2-City-Test.mmdb'),
+            GEOIP_ISP_FILE: join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'GeoIP2-ISP-Test.mmdb'),
+        };
+
+        environment();
+
+        app = express();
+        app.disable('x-powered-by');
+        app.set('trust proxy', true);
+        return configureApp(app);
+    });
+
+    afterEach(() => (process.env = { ...env }));
+
     describe('Error handling', () => {
         it('should fail on invalid IP', () => {
             return request(app)
                 .get('/geolocate/256.0.0.1')
                 .expect(400)
                 .expect((res: request.Response) => {
-                    expect(res.body).toEqual(expect.any(Object));
-                    expect(res.body).toHaveProperty('success');
-                    expect(res.body).toHaveProperty('status');
-                    expect(res.body).toHaveProperty('code');
-                    expect(res.body).toHaveProperty('message');
-
                     const body = res.body as ErrorResponse;
-                    expect(body.success).toBe(false);
-                    expect(body.status).toBe(400);
-                    expect(body.code).toBe('BAD_REQUEST');
-                    expect(body.message).toContain('request/params/ip');
+                    expect(body)
+                        .to.be.an('object')
+                        .and.include({
+                            success: false,
+                            status: 400,
+                            code: 'BAD_REQUEST',
+                        })
+                        .and.have.property('message')
+                        .that.is.a('string')
+                        .that.contains('request/params/ip');
                 });
         });
     });

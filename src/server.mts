@@ -8,8 +8,8 @@ import morgan from 'morgan';
 
 import { environment } from './lib/environment.mjs';
 
-import monitoringController from './controllers/monitoring.mjs';
-import geoipController from './controllers/geoip.mjs';
+import { monitoringController } from './controllers/monitoring.mjs';
+import { geoIPController } from './controllers/geoip.mjs';
 
 export async function configureApp(app: Express): Promise<void> {
     const env = environment();
@@ -19,10 +19,10 @@ export async function configureApp(app: Express): Promise<void> {
         app,
         env.NODE_ENV,
     );
-    app.use(await geoipController(), notFoundMiddleware, errorMiddleware);
+    app.use(await geoIPController(), notFoundMiddleware, errorMiddleware);
 }
 
-/* istanbul ignore next */
+/* c8 ignore start */
 export function setupApp(): Express {
     const app = express();
     app.set('strict routing', true);
@@ -38,7 +38,6 @@ export function setupApp(): Express {
     return app;
 }
 
-/* istanbul ignore next */
 export async function run(): Promise<void> {
     const [env, app] = [environment(), setupApp()];
 
@@ -49,3 +48,4 @@ export async function run(): Promise<void> {
     const server = await createServer(app);
     server.listen(env.PORT);
 }
+/* c8 ignore end */
