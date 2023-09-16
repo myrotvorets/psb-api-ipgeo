@@ -1,3 +1,4 @@
+/** @type {import('mocha').MochaOptions} */
 module.exports = {
     recursive: true,
     spec: ['test/**/*.test.mts'],
