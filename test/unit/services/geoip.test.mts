@@ -20,7 +20,7 @@ describe('GeoIPService', () => {
     const mockedGetWithPrefixLength = td.function();
 
     beforeEach(async () => {
-        td.replace('maxmind', {
+        await td.replaceEsm('maxmind', {
             open: mockedMaxmindOpen,
         });
         geoip = await import('../../../src/services/geoip.mjs');
