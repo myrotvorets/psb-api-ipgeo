@@ -1,5 +1,6 @@
 import { beforeEach, describe, it } from 'mocha';
-import * as td from 'testdouble';
+import { TestDouble, func, matchers, replaceEsm, when } from 'testdouble';
+import type * as mm from 'maxmind';
 import { expect } from 'chai';
 import type { GeoIPService } from '../../../src/services/geoip.mjs';
 import {
@@ -15,12 +16,16 @@ import {
 describe('GeoIPService', () => {
     let geoip: typeof import('../../../src/services/geoip.mjs');
     let service: GeoIPService;
+    let mockedMaxmindOpen: TestDouble<typeof mm.open>;
+    let mockedGetWithPrefixLength: TestDouble<typeof mm.Reader.prototype.getWithPrefixLength>;
 
-    const mockedMaxmindOpen = td.function();
-    const mockedGetWithPrefixLength = td.function();
+    before(function () {
+        mockedMaxmindOpen = func<typeof mm.open>();
+        mockedGetWithPrefixLength = func<typeof mm.Reader.prototype.getWithPrefixLength>();
+    });
 
     beforeEach(async () => {
-        await td.replaceEsm('maxmind', {
+        await replaceEsm('maxmind', {
             open: mockedMaxmindOpen,
         });
         geoip = await import('../../../src/services/geoip.mjs');
@@ -30,12 +35,14 @@ describe('GeoIPService', () => {
 
     describe('setCityDatabase()', () => {
         it('should not reject on maxmind failures', () => {
-            td.when(mockedMaxmindOpen(td.matchers.anything(), td.matchers.anything())).thenReject(new Error());
+            when(mockedMaxmindOpen(matchers.isA(String) as string, matchers.anything() as mm.OpenOpts)).thenReject(
+                new Error(),
+            );
             return expect(service.setCityDatabase('blah')).to.eventually.be.false;
         });
 
         it('should accept empty values', () => {
-            td.when(mockedMaxmindOpen(td.matchers.anything(), td.matchers.anything())).thenResolve({
+            when(mockedMaxmindOpen(matchers.isA(String) as string, matchers.anything() as mm.OpenOpts)).thenResolve({
                 getWithPrefixLength: mockedGetWithPrefixLength,
             });
             return expect(service.setCityDatabase('')).to.eventually.be.false;
@@ -44,12 +51,14 @@ describe('GeoIPService', () => {
 
     describe('setISPDatabase()', () => {
         it('should not reject on maxmind failures', () => {
-            td.when(mockedMaxmindOpen(td.matchers.anything(), td.matchers.anything())).thenReject(new Error());
+            when(mockedMaxmindOpen(matchers.isA(String) as string, matchers.anything() as mm.OpenOpts)).thenReject(
+                new Error(),
+            );
             return expect(service.setISPDatabase('blah')).to.eventually.be.false;
         });
 
         it('should accept empty values', () => {
-            td.when(mockedMaxmindOpen(td.matchers.anything(), td.matchers.anything())).thenResolve({
+            when(mockedMaxmindOpen(matchers.isA(String) as string, matchers.anything() as mm.OpenOpts)).thenResolve({
                 getWithPrefixLength: mockedGetWithPrefixLength,
             });
             return expect(service.setISPDatabase('')).to.eventually.be.false;
@@ -58,7 +67,7 @@ describe('GeoIPService', () => {
 
     describe('geolocate()', () => {
         beforeEach(() => {
-            td.when(mockedMaxmindOpen(td.matchers.anything(), td.matchers.anything())).thenResolve({
+            when(mockedMaxmindOpen(matchers.isA(String) as string, matchers.anything() as mm.OpenOpts)).thenResolve({
                 getWithPrefixLength: mockedGetWithPrefixLength,
             });
 
@@ -66,24 +75,25 @@ describe('GeoIPService', () => {
         });
 
         it('should handle null responses', () => {
-            td.when(mockedGetWithPrefixLength(td.matchers.anything())).thenReturn([null, 0]);
+            when(mockedGetWithPrefixLength(matchers.isA(String) as string)).thenReturn([null, 0]);
             const actual = service.geolocate('1.2.3.4');
             expect(actual).to.deep.equal(emptyGeoResponse);
         });
 
         it('should handle empty responses', () => {
-            td.when(mockedGetWithPrefixLength(td.matchers.anything())).thenReturn([{}, 0]);
+            when(mockedGetWithPrefixLength(matchers.isA(String) as string)).thenReturn([{}, 0]);
             const actual = service.geolocate('1.2.3.4');
             expect(actual).to.deep.equal(emptyGeoResponse);
         });
 
+        // eslint-disable-next-line mocha/no-setup-in-describe
         [
             [cityResponseWithRepresentedCountry, geoResponseWithRepresentedCountry],
             [cityResponseWithRegisteredCountry, geoResponseWithRegisteredCountry],
             [cityResponseWithCountry, geoResponseWithCountry],
         ].forEach(([mock, expected]) => {
             it('should try records in the defined order', () => {
-                td.when(mockedGetWithPrefixLength(td.matchers.anything())).thenReturn([mock, 32], [null, 0]);
+                when(mockedGetWithPrefixLength(matchers.isA(String) as string)).thenReturn([mock, 32], [null, 0]);
                 const actual = service.geolocate('1.2.3.4');
                 expect(actual).to.deep.equal(expected);
             });

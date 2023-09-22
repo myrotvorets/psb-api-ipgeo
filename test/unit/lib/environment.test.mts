@@ -1,9 +1,13 @@
-import { afterEach, describe, it } from 'mocha';
+import { afterEach, before, describe, it } from 'mocha';
 import { expect } from 'chai';
 import { type Environment, environment } from '../../../src/lib/environment.mjs';
 
 describe('environment', () => {
-    const env = { ...process.env };
+    let env: NodeJS.ProcessEnv;
+
+    before(function () {
+        env = { ...process.env };
+    });
 
     afterEach(() => (process.env = { ...env }));
 
