@@ -18,14 +18,18 @@ RUN npm run build -- --declaration false --removeComments true --sourceMap false
 RUN npm prune --omit=dev
 
 FROM myrotvorets/node-min@sha256:5902f0d6f0d6e5409270d3c6c0e4046574a8df87601858a1f18ce50b3b8a7470
+ARG SKIP_DOWNLOAD=""
 USER root
 WORKDIR /srv/service
 RUN \
     chown nobody:nobody /srv/service && \
     apk add --no-cache openssl && \
-    install -d -o nobody -g nobody /usr/share/GeoIP && \
-    wget https://cdn.myrotvorets.center/m/geoip/GeoIP2-City.mmdb.enc?_=20220530 -U "Mozilla/5.0" -O /usr/share/GeoIP/GeoIP2-City.mmdb.enc && \
-    wget https://cdn.myrotvorets.center/m/geoip/GeoIP2-ISP.mmdb.enc?_=20220530 -U "Mozilla/5.0" -O /usr/share/GeoIP/GeoIP2-ISP.mmdb.enc
+    install -d -o nobody -g nobody /usr/share/GeoIP
+RUN \
+    if [ -z "${SKIP_DOWNLOAD}" ]; then \
+        wget https://cdn.myrotvorets.center/m/geoip/GeoIP2-City.mmdb.enc?_=20220530 -U "Mozilla/5.0" -O /usr/share/GeoIP/GeoIP2-City.mmdb.enc && \
+        wget https://cdn.myrotvorets.center/m/geoip/GeoIP2-ISP.mmdb.enc?_=20220530 -U "Mozilla/5.0" -O /usr/share/GeoIP/GeoIP2-ISP.mmdb.enc; \
+    fi
 COPY healthcheck.sh entrypoint.sh /usr/local/bin/
 HEALTHCHECK --interval=60s --timeout=10s --start-period=5s --retries=3 CMD ["/usr/local/bin/healthcheck.sh"]
 USER nobody:nobody

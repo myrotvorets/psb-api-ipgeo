@@ -1,0 +1,15 @@
+services:
+  geoip:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SKIP_DOWNLOAD: '1'
+    environment:
+      SKIP_GEOIP_DECRYPTION: '1'
+      GEOIP_CITY_FILE: '/usr/share/GeoIP/GeoIP2-City.mmdb'
+      GEOIP_ISP_FILE: '/usr/share/GeoIP/GeoIP2-ISP.mmdb'
+      PORT: '3000'
+    volumes:
+      - ./test/functional/fixtures/GeoIP2-City-Test.mmdb:/usr/share/GeoIP/GeoIP2-City.mmdb
+      - ./test/functional/fixtures/GeoIP2-ISP-Test.mmdb:/usr/share/GeoIP/GeoIP2-ISP.mmdb
