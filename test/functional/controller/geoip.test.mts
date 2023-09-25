@@ -1,6 +1,5 @@
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { afterEach, before, describe, it } from 'mocha';
 import { expect } from 'chai';
 import express, { type Express } from 'express';
 import request from 'supertest';
@@ -8,30 +7,34 @@ import type { ErrorResponse } from '@myrotvorets/express-microservice-middleware
 import { environment } from '../../../src/lib/environment.mjs';
 import { configureApp } from '../../../src/server.mjs';
 
-let app: Express;
-const env = { ...process.env };
+describe('GeoIPController', function () {
+    let app: Express;
 
-describe('GeoIPController', () => {
-    before(() => {
-        process.env = {
-            NODE_ENV: 'test',
-            PORT: '3030',
-            GEOIP_CITY_FILE: join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'GeoIP2-City-Test.mmdb'),
-            GEOIP_ISP_FILE: join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'GeoIP2-ISP-Test.mmdb'),
-        };
+    before(function () {
+        const env = { ...process.env };
 
-        environment();
+        try {
+            const base = dirname(fileURLToPath(import.meta.url));
+            process.env = {
+                NODE_ENV: 'test',
+                PORT: '3030',
+                GEOIP_CITY_FILE: join(base, '..', 'fixtures', 'GeoIP2-City-Test.mmdb'),
+                GEOIP_ISP_FILE: join(base, '..', 'fixtures', 'GeoIP2-ISP-Test.mmdb'),
+            };
 
-        app = express();
-        app.disable('x-powered-by');
-        app.set('trust proxy', true);
-        return configureApp(app);
+            environment();
+
+            app = express();
+            app.disable('x-powered-by');
+            app.set('trust proxy', true);
+            return configureApp(app);
+        } finally {
+            process.env = { ...env };
+        }
     });
 
-    afterEach(() => (process.env = { ...env }));
-
-    describe('Error handling', () => {
-        it('should fail on invalid IP', () => {
+    describe('Error handling', function () {
+        it('should fail on invalid IP', function () {
             return request(app)
                 .get('/geolocate/256.0.0.1')
                 .expect(400)
@@ -51,9 +54,9 @@ describe('GeoIPController', () => {
         });
     });
 
-    describe('Normal operation', () => {
-        describe('countryHandler', () => {
-            it('should return the expected results', () => {
+    describe('Normal operation', function () {
+        describe('countryHandler', function () {
+            it('should return the expected results', function () {
                 return request(app)
                     .get('/country')
                     .set('X-Forwarded-For', '2.125.160.216')
@@ -68,8 +71,8 @@ describe('GeoIPController', () => {
             });
         });
 
-        describe('geolocateHandler', () => {
-            it('should return the expected results', () => {
+        describe('geolocateHandler', function () {
+            it('should return the expected results', function () {
                 return request(app)
                     .get('/geolocate/1.128.0.0')
                     .expect(200)

@@ -1,17 +1,18 @@
-import { afterEach, before, describe, it } from 'mocha';
 import { expect } from 'chai';
 import { type Environment, environment } from '../../../src/lib/environment.mjs';
 
-describe('environment', () => {
-    let env: NodeJS.ProcessEnv;
+describe('environment', function () {
+    let env: typeof process.env;
 
     before(function () {
         env = { ...process.env };
     });
 
-    afterEach(() => (process.env = { ...env }));
+    afterEach(function () {
+        process.env = { ...env };
+    });
 
-    it('should not allow extra variables', () => {
+    it('should not allow extra variables', function () {
         const expected: Environment = {
             NODE_ENV: 'development',
             PORT: 3000,
@@ -29,7 +30,7 @@ describe('environment', () => {
         expect(actual).to.deep.equal(expected);
     });
 
-    it('should cache the result', () => {
+    it('should cache the result', function () {
         const expected: Environment = {
             NODE_ENV: 'staging',
             PORT: 3030,

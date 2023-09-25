@@ -1,22 +1,25 @@
-import { afterEach, before, beforeEach, describe, it } from 'mocha';
+import { expect } from 'chai';
 import express, { type Express } from 'express';
 import request from 'supertest';
 import { healthChecker, monitoringController } from '../../../src/controllers/monitoring.mjs';
 
-let app: Express;
+describe('MonitoringController', function () {
+    let app: Express;
 
-describe('MonitoringController', () => {
-    before(() => {
+    before(function () {
         app = express();
         app.disable('x-powered-by');
         app.use('/monitoring', monitoringController());
     });
 
-    beforeEach(() => {
+    beforeEach(function () {
+        expect(healthChecker).not.to.be.undefined;
         healthChecker.shutdownRequested = false;
     });
 
-    afterEach(() => process.removeAllListeners('SIGTERM'));
+    afterEach(function () {
+        process.removeAllListeners('SIGTERM');
+    });
 
     const checker200 = (endpoint: string): Promise<unknown> =>
         request(app).get(`/monitoring/${endpoint}`).expect('Content-Type', /json/u).expect(200);
@@ -26,18 +29,33 @@ describe('MonitoringController', () => {
         return request(app).get(`/monitoring/${endpoint}`).expect('Content-Type', /json/u).expect(503);
     };
 
-    describe('Liveness Check', () => {
-        it('should succeed', () => checker200('live'));
-        it('should fail when shutdown requested', () => checker503('live'));
+    describe('Liveness Check', function () {
+        it('should succeed', function () {
+            return checker200('live');
+        });
+
+        it('should fail when shutdown requested', function () {
+            return checker503('live');
+        });
     });
 
-    describe('Readiness Check', () => {
-        it('should succeed', () => checker200('ready'));
-        it('should fail when shutdown requested', () => checker503('ready'));
+    describe('Readiness Check', function () {
+        it('should succeed', function () {
+            return checker200('ready');
+        });
+
+        it('should fail when shutdown requested', function () {
+            return checker503('ready');
+        });
     });
 
-    describe('Health Check', () => {
-        it('should succeed', () => checker200('health'));
-        it('should fail when shutdown requested', () => checker503('health'));
+    describe('Health Check', function () {
+        it('should succeed', function () {
+            return checker200('health');
+        });
+
+        it('should fail when shutdown requested', function () {
+            return checker503('health');
+        });
     });
 });
