@@ -23,7 +23,7 @@
     "@myrotvorets/create-server": "^2.2.0",
     "@myrotvorets/express-microservice-middlewares": "^1.5.7",
     "@myrotvorets/oav-installer": "^4.0.1",
-    "@myrotvorets/opentelemetry-configurator": "^4.0.1",
+    "@myrotvorets/opentelemetry-configurator": "^5.0.0",
     "@opentelemetry/instrumentation-express": "^0.33.1",
     "@opentelemetry/instrumentation-http": "^0.43.0",
     "envalid": "^8.0.0",
