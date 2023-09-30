@@ -17,6 +17,7 @@ export async function configureApp(app: Express): Promise<void> {
 
     await installOpenApiValidator(join(base, 'specs', 'ipgeo-private.yaml'), app, env.NODE_ENV, {
         ignorePaths: /^(\/$|\/specs\/)/u,
+        fileUploader: false,
     });
 
     app.use(
