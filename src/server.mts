@@ -1,6 +1,6 @@
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import express, { type Express } from 'express';
+import express, { type Express, static as staticMiddleware } from 'express';
 import { installOpenApiValidator } from '@myrotvorets/oav-installer';
 import { errorMiddleware, notFoundMiddleware } from '@myrotvorets/express-microservice-middlewares';
 import { createServer } from '@myrotvorets/create-server';
@@ -13,12 +13,26 @@ import { geoIPController } from './controllers/geoip.mjs';
 
 export async function configureApp(app: Express): Promise<void> {
     const env = environment();
+    const base = dirname(fileURLToPath(import.meta.url));
 
-    await installOpenApiValidator(
-        join(dirname(fileURLToPath(import.meta.url)), 'specs', 'ipgeo.yaml'),
-        app,
-        env.NODE_ENV,
+    await installOpenApiValidator(join(base, 'specs', 'ipgeo-private.yaml'), app, env.NODE_ENV, {
+        ignorePaths: /^(\/$|\/specs\/)/u,
+    });
+
+    app.use(
+        '/specs/',
+        staticMiddleware(join(base, 'specs'), {
+            acceptRanges: false,
+            index: false,
+        }),
     );
+
+    /* c8 ignore start */
+    if (process.env.HAVE_SWAGGER === 'true') {
+        app.get('/', (_req, res) => res.redirect('/swagger/'));
+    }
+    /* c8 ignore stop */
+
     app.use(await geoIPController(), notFoundMiddleware, errorMiddleware);
 }
 

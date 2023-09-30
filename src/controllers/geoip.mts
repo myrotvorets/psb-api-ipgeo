@@ -1,13 +1,23 @@
-import { type Request, type RequestHandler, type Response, Router } from 'express';
-import { GeoIPService } from '../services/geoip.mjs';
+import { type RequestHandler, Router } from 'express';
+import { GeoIPService, type GeoResponse } from '../services/geoip.mjs';
 import { environment } from '../lib/environment.mjs';
 
-interface GeolocateParams extends Record<string, string> {
+interface GeolocateParams {
     ip: string;
 }
 
-function countryHandler(service: GeoIPService): RequestHandler {
-    return (req: Request, res: Response): void => {
+interface CountryResponse {
+    success: true;
+    response: Pick<GeoResponse, 'cc' | 'country'>;
+}
+
+interface GeolocateResponse {
+    success: true;
+    response: GeoResponse;
+}
+
+function countryHandler(service: GeoIPService): RequestHandler<never, CountryResponse, never, never> {
+    return (req, res): void => {
         const response = service.geolocate(req.ip);
         res.header('Cache-Control', 'public, max-age=86400');
         res.json({
@@ -20,8 +30,8 @@ function countryHandler(service: GeoIPService): RequestHandler {
     };
 }
 
-function geolocateHandler(service: GeoIPService): RequestHandler<GeolocateParams> {
-    return (req: Request<GeolocateParams>, res: Response): void => {
+function geolocateHandler(service: GeoIPService): RequestHandler<GeolocateParams, GeolocateResponse, never, never> {
+    return (req, res): void => {
         res.json({
             success: true,
             response: service.geolocate(req.params.ip),
