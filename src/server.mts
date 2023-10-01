@@ -4,37 +4,57 @@ import express, { type Express, static as staticMiddleware } from 'express';
 import { installOpenApiValidator } from '@myrotvorets/oav-installer';
 import { errorMiddleware, notFoundMiddleware } from '@myrotvorets/express-microservice-middlewares';
 import { createServer } from '@myrotvorets/create-server';
-import morgan from 'morgan';
 
-import { environment } from './lib/environment.mjs';
+import { recordErrorToSpan } from '@myrotvorets/opentelemetry-configurator';
+import { initializeContainer, scopedContainerMiddleware } from './lib/container.mjs';
+import { configurator } from './lib/otel.mjs';
+
+import { loggerMiddleware } from './middleware/logger.mjs';
 
 import { monitoringController } from './controllers/monitoring.mjs';
 import { geoIPController } from './controllers/geoip.mjs';
 
-export async function configureApp(app: Express): Promise<void> {
-    const env = environment();
-    const base = dirname(fileURLToPath(import.meta.url));
+export function configureApp(app: Express): Promise<ReturnType<typeof initializeContainer>> {
+    return configurator
+        .tracer()
+        .startActiveSpan('configureApp', async (span): Promise<ReturnType<typeof initializeContainer>> => {
+            try {
+                const container = initializeContainer();
+                const env = container.resolve('environment');
+                const base = dirname(fileURLToPath(import.meta.url));
 
-    await installOpenApiValidator(join(base, 'specs', 'ipgeo-private.yaml'), app, env.NODE_ENV, {
-        ignorePaths: /^(\/$|\/specs\/)/u,
-        fileUploader: false,
-    });
+                app.use(scopedContainerMiddleware, loggerMiddleware);
 
-    app.use(
-        '/specs/',
-        staticMiddleware(join(base, 'specs'), {
-            acceptRanges: false,
-            index: false,
-        }),
-    );
+                app.use('/monitoring', monitoringController());
 
-    /* c8 ignore start */
-    if (process.env.HAVE_SWAGGER === 'true') {
-        app.get('/', (_req, res) => res.redirect('/swagger/'));
-    }
-    /* c8 ignore stop */
+                await installOpenApiValidator(join(base, 'specs', 'ipgeo-private.yaml'), app, env.NODE_ENV, {
+                    ignorePaths: /^(\/$|\/specs\/)/u,
+                });
 
-    app.use(await geoIPController(), notFoundMiddleware, errorMiddleware);
+                app.use(
+                    '/specs/',
+                    staticMiddleware(join(base, 'specs'), {
+                        acceptRanges: false,
+                        index: false,
+                    }),
+                );
+
+                /* c8 ignore start */
+                if (process.env.HAVE_SWAGGER === 'true') {
+                    app.get('/', (_req, res) => res.redirect('/swagger/'));
+                }
+                /* c8 ignore stop */
+
+                app.use(geoIPController(), notFoundMiddleware, errorMiddleware);
+                span.end();
+                return container;
+            } /* c8 ignore start */ catch (e) {
+                recordErrorToSpan(e, span);
+                span.end();
+                console.error(e);
+                return process.exit(1);
+            } /* c8 ignore stop */
+        });
 }
 
 /* c8 ignore start */
@@ -43,22 +63,13 @@ export function setupApp(): Express {
     app.set('strict routing', true);
     app.set('x-powered-by', false);
     app.set('trust proxy', true);
-
-    app.use(
-        morgan(
-            '[PSBAPI-ipgeo] :req[X-Request-ID]\t:method\t:url\t:status :res[content-length]\t:date[iso]\t:response-time\t:total-time',
-        ),
-    );
-
     return app;
 }
 
 export async function run(): Promise<void> {
-    const [env, app] = [environment(), setupApp()];
-
-    app.use('/monitoring', monitoringController());
-
-    await configureApp(app);
+    const app = setupApp();
+    const container = await configureApp(app);
+    const env = container.resolve('environment');
 
     const server = await createServer(app);
     server.listen(env.PORT);
