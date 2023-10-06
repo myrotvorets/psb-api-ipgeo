@@ -23,4 +23,4 @@ if [ ! -d node_modules ]; then
     exit 1
 fi
 
-npm run start:dev 2>&1 | tee -a "/var/log/${SERVICE_NAME}/${SERVICE_NAME}.log"
+exec npm run start:dev
