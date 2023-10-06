@@ -1,20 +1,21 @@
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect } from 'chai';
-import express, { type Express } from 'express';
+import { type Express } from 'express';
 import request from 'supertest';
 import type { ErrorResponse } from '@myrotvorets/express-microservice-middlewares';
-import { environment } from '../../../src/lib/environment.mjs';
-import { configureApp } from '../../../src/server.mjs';
+import { configureApp, createApp } from '../../../src/server.mjs';
+import { container } from '../../../src/lib/container.mjs';
 
 describe('GeoIPController', function () {
     let app: Express;
 
-    before(function () {
+    before(async function () {
+        await container.dispose();
         const env = { ...process.env };
 
+        const base = dirname(fileURLToPath(import.meta.url));
         try {
-            const base = dirname(fileURLToPath(import.meta.url));
             process.env = {
                 NODE_ENV: 'test',
                 PORT: '3030',
@@ -22,11 +23,7 @@ describe('GeoIPController', function () {
                 GEOIP_ISP_FILE: join(base, '..', 'fixtures', 'GeoIP2-ISP-Test.mmdb'),
             };
 
-            environment();
-
-            app = express();
-            app.disable('x-powered-by');
-            app.set('trust proxy', true);
+            app = createApp();
             return configureApp(app);
         } finally {
             process.env = { ...env };

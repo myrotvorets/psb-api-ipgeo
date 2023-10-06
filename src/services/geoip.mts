@@ -1,4 +1,5 @@
-import { type CityResponse, type IspResponse, Reader, open } from 'maxmind';
+import { readFileSync } from 'node:fs';
+import { type CityResponse, type IspResponse, Reader, type Response } from 'maxmind';
 
 export interface GeoCityResponse {
     cc: string | null;
@@ -25,32 +26,27 @@ export class GeoIPService {
     private _city: Reader<CityResponse> | undefined;
     private _isp: Reader<IspResponse> | undefined;
 
-    public async setCityDatabase(file: string): Promise<boolean> {
-        if (file) {
-            try {
-                this._city = await open<CityResponse>(file, { watchForUpdates: false });
-                return true;
-            } catch {
-                /* Do nothing */
-            }
-        }
-
-        this._city = undefined;
-        return false;
+    public setCityDatabase(file: string): boolean {
+        this._city = GeoIPService.readDatabaseSync(file);
+        return this._city !== undefined;
     }
 
-    public async setISPDatabase(file: string): Promise<boolean> {
+    public setISPDatabase(file: string): boolean {
+        this._isp = GeoIPService.readDatabaseSync(file);
+        return this._isp !== undefined;
+    }
+
+    private static readDatabaseSync<T extends Response>(file: string): Reader<T> | undefined {
         if (file) {
             try {
-                this._isp = await open<IspResponse>(file, { watchForUpdates: false });
-                return true;
+                const buf = readFileSync(file);
+                return new Reader(buf);
             } catch {
                 /* Do nothing */
             }
         }
 
-        this._isp = undefined;
-        return false;
+        return undefined;
     }
 
     public geolocate(ip: string): GeoResponse {
@@ -78,25 +74,25 @@ export class GeoIPService {
             // the `represented_country` is the country that the base represents.
 
             cc =
-                response.represented_country?.iso_code ||
-                response.country?.iso_code ||
-                response.registered_country?.iso_code ||
+                response.represented_country?.iso_code ??
+                response.country?.iso_code ??
+                response.registered_country?.iso_code ??
                 null;
 
             country =
-                response.represented_country?.names.en ||
-                response.country?.names.en ||
-                response.registered_country?.names.en ||
+                response.represented_country?.names.en ??
+                response.country?.names.en ??
+                response.registered_country?.names.en ??
                 null;
 
             id =
-                response.city?.geoname_id ||
-                response.represented_country?.geoname_id ||
-                response.country?.geoname_id ||
-                response.registered_country?.geoname_id ||
+                response.city?.geoname_id ??
+                response.represented_country?.geoname_id ??
+                response.country?.geoname_id ??
+                response.registered_country?.geoname_id ??
                 null;
 
-            city = response.city?.names.en || null;
+            city = response.city?.names.en ?? null;
         }
 
         return { cc, country, city, id };

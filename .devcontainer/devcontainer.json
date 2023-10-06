@@ -1,9 +1,10 @@
 {
     "name": "IP Geolocation",
     "dockerComposeFile": "docker-compose.yml",
+    "overrideCommand": false,
     "service": "ipgeo",
     "workspaceFolder": "/usr/src/service",
-    "forwardPorts": [80, 9411],
+    "forwardPorts": [80, 3100, 16686],
     "portsAttributes": {
         "80": {
             "label": "Application (Frontend)",
@@ -13,9 +14,13 @@
             "label": "Application (Backend)",
             "onAutoForward": "ignore"
         },
-        "9411": {
-            "label": "Zipkin",
-            "onAutoForward": "notify"
+        "3100": {
+            "label": "Grafana",
+            "onAutoForward": "silent"
+        },
+        "16686": {
+            "label": "Jaeger",
+            "onAutoForward": "silent"
         }
     },
     "remoteUser": "vscode",

@@ -3,6 +3,10 @@ services:
     build:
       context: .docker/ipgeo
       dockerfile: Dockerfile
+    depends_on:
+      - otel-collector
+      - jaeger
+      - grafana
     environment:
       - NODE_ENV=development
       - NO_UPDATE_NOTIFIER=true
@@ -11,8 +15,10 @@ services:
       - HTTPS=0
       - PORT=3000
       - ENABLE_TRACING=1
-      - OTEL_EXPORTER_ZIPKIN_ENDPOINT=http://zipkin:9411/api/v2/spans
-      - HAVE_SWAGGER=true
+      - OTEL_TRACES_EXPORTER=otlp
+      - OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4317
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      - OTEL_EXPORTER_OTLP_INSECURE=true
       - npm_config_userconfig=/usr/src/service/.npmrc.local
       - GEOIP_CITY_FILE=/usr/share/GeoIP/GeoIP2-City.mmdb
       - GEOIP_ISP_FILE=/usr/share/GeoIP/GeoIP2-ISP.mmdb
@@ -21,12 +27,50 @@ services:
       - "../:/usr/src/service"
     working_dir: /usr/src/service
 
-  zipkin:
-    image: openzipkin/zipkin:latest@sha256:5fd55e6a109233b36d419d7fd2449588d17a6e4da7ed7a3fd0d09c86f1c75a15
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.86.0
+    command:
+      - "--config=/etc/otel-collector-config.yaml"
+    depends_on:
+      - victoriametrics
+      - jaeger
+      - loki
+    restart: always
+    volumes:
+      - ./.docker/otel-collector/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.49.0
     restart: always
 
+  victoriametrics:
+    image: victoriametrics/victoria-metrics:v1.93.5
+    command:
+      - "--storageDataPath=/storage"
+      - "--httpListenAddr=:8428"
+    restart: always
+    volumes:
+      - vmdata:/storage
+
+  loki:
+    image: grafana/loki:2.9.0
+    command: 
+      - "-config.file=/etc/loki/local-config.yaml"
+    restart: always
+
+  grafana:
+    image: grafana/grafana:9.5.12
+    depends_on:
+      - victoriametrics
+      - loki
+    restart: always
+    volumes:
+      - grafanadata:/var/lib/grafana
+      - ./.docker/grafana/provisioning/:/etc/grafana/provisioning/
+      - ./.docker/grafana/dashboards/ipgeo.json:/var/lib/grafana/dashboards/ipgeo.json
+
   swagger:
-    image: swaggerapi/swagger-ui:latest@sha256:c17153d23b81490d9b1d56bb26448b44b2fd43e46e8656ccb6af34eceb291a79
+    image: swaggerapi/swagger-ui:v5.9.0
     environment:
       - SWAGGER_JSON_URL=/specs/ipgeo-private.yaml
       - BASE_URL=/swagger
@@ -35,3 +79,7 @@ services:
       - DEFAULT_MODEL_EXPAND_DEPTH=100
       - DEEP_LINKING=true
       - VALIDATOR_URL=none
+
+volumes:
+  grafanadata:
+  vmdata:
