@@ -41,7 +41,14 @@ services:
 
   jaeger:
     image: jaegertracing/all-in-one:1.49.0
+    environment:
+      - SPAN_STORAGE_TYPE=badger
+      - BADGER_EPHEMERAL=false
+      - BADGER_DIRECTORY_VALUE=/badger/data
+      - BADGER_DIRECTORY_KEY=/badger/key
     restart: always
+    volumes:
+      - jaegerdata:/badger
 
   victoriametrics:
     image: victoriametrics/victoria-metrics:v1.93.5
@@ -82,4 +89,5 @@ services:
 
 volumes:
   grafanadata:
+  jaegerdata:
   vmdata:
