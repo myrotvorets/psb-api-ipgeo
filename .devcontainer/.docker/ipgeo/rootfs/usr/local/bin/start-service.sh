@@ -2,8 +2,6 @@
 
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-: "${SERVICE_NAME:?}"
-
 cd /usr/src/service || exit 1
 
 if [ -z "$(ls -A src/specs)" ] && [ -d .git ]; then

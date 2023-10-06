@@ -2,8 +2,6 @@
 
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-: "${SERVICE_NAME:?}"
-
 cd /usr/src/service || exit 1
 
 if [ ! -f .npmrc.local ] || ! grep -q '//npm.pkg.github.com/:_authToken=' .npmrc.local; then
@@ -20,4 +18,4 @@ else
     echo ".npmrc.local already exists and has an authentication token for npm.pkg.github.com"
 fi
 
-exec sudo sv start "${SERVICE_NAME}"
+exec sudo sv start app

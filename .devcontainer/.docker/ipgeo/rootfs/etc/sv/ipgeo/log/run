@@ -1,5 +1,0 @@
-#!/bin/sh
-
-: "${SERVICE_NAME:?}"
-
-exec cat > "/var/log/${SERVICE_NAME}/${SERVICE_NAME}.log"

@@ -1,7 +1,5 @@
 FROM ghcr.io/sjinks/codespaces/nodejs:latest@sha256:04805972fe280ba8a0e7951e101f5139316f123b79542d0e38073d861cda3a8a
 
-ENV SERVICE_NAME ipgeo
-
 RUN \
     apk add --no-cache nginx && \
     sed -i "s/user nginx;/user ${CONTAINER_USER};/" /etc/nginx/nginx.conf && \
