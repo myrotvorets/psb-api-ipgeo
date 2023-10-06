@@ -1,10 +1,10 @@
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect } from 'chai';
-import express, { type Express } from 'express';
+import { type Express } from 'express';
 import request from 'supertest';
 import type { ErrorResponse } from '@myrotvorets/express-microservice-middlewares';
-import { configureApp } from '../../../src/server.mjs';
+import { configureApp, createApp } from '../../../src/server.mjs';
 import { container } from '../../../src/lib/container.mjs';
 
 describe('GeoIPController', function () {
@@ -23,8 +23,7 @@ describe('GeoIPController', function () {
                 GEOIP_ISP_FILE: join(base, '..', 'fixtures', 'GeoIP2-ISP-Test.mmdb'),
             };
 
-            app = express();
-            app.set('trust proxy', true);
+            app = createApp();
             return configureApp(app);
         } finally {
             process.env = { ...env };

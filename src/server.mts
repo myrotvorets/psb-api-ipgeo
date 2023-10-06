@@ -39,12 +39,6 @@ export function configureApp(app: Express): Promise<ReturnType<typeof initialize
                     }),
                 );
 
-                /* c8 ignore start */
-                if (process.env.HAVE_SWAGGER === 'true') {
-                    app.get('/', (_req, res) => res.redirect('/swagger/'));
-                }
-                /* c8 ignore stop */
-
                 app.use(geoIPController(), notFoundMiddleware, errorMiddleware);
                 span.end();
                 return container;
@@ -57,8 +51,7 @@ export function configureApp(app: Express): Promise<ReturnType<typeof initialize
         });
 }
 
-/* c8 ignore start */
-export function setupApp(): Express {
+export function createApp(): Express {
     const app = express();
     app.set('strict routing', true);
     app.set('x-powered-by', false);
@@ -66,8 +59,9 @@ export function setupApp(): Express {
     return app;
 }
 
+/* c8 ignore start */
 export async function run(): Promise<void> {
-    const app = setupApp();
+    const app = createApp();
     const container = await configureApp(app);
     const env = container.resolve('environment');
 
