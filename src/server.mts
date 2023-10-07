@@ -1,11 +1,11 @@
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import express, { type Express, static as staticMiddleware } from 'express';
+import express, { type Express } from 'express';
 import { installOpenApiValidator } from '@myrotvorets/oav-installer';
 import { errorMiddleware, notFoundMiddleware } from '@myrotvorets/express-microservice-middlewares';
 import { createServer } from '@myrotvorets/create-server';
-
 import { recordErrorToSpan } from '@myrotvorets/opentelemetry-configurator';
+
 import { initializeContainer, scopedContainerMiddleware } from './lib/container.mjs';
 import { configurator } from './lib/otel.mjs';
 
@@ -31,23 +31,14 @@ export function configureApp(app: Express): Promise<ReturnType<typeof initialize
                     ignorePaths: /^(\/$|\/specs\/)/u,
                 });
 
-                app.use(
-                    '/specs/',
-                    staticMiddleware(join(base, 'specs'), {
-                        acceptRanges: false,
-                        index: false,
-                    }),
-                );
-
                 app.use(geoIPController(), notFoundMiddleware, errorMiddleware);
-                span.end();
                 return container;
             } /* c8 ignore start */ catch (e) {
                 recordErrorToSpan(e, span);
+                throw e;
+            } /* c8 ignore stop */ finally {
                 span.end();
-                console.error(e);
-                return process.exit(1);
-            } /* c8 ignore stop */
+            }
         });
 }
 
