@@ -1,7 +1,15 @@
+extensions:
+  basicauth/server:
+    htpasswd:
+      inline: |
+        otel:otel
+
 receivers:
   otlp:
     protocols:
       grpc:
+        auth:
+          authenticator: basicauth/server
 
 exporters:
   prometheus:
@@ -29,6 +37,8 @@ processors:
   batch:
 
 service:
+  extensions:
+    - basicauth/server
   pipelines:
     traces:
       receivers:

@@ -4,13 +4,7 @@ import {
     getExpressInstrumentations,
     getFsInstrumentation,
 } from '@myrotvorets/opentelemetry-configurator';
-
-if (!+(process.env.ENABLE_TRACING || 0)) {
-    process.env.OTEL_SDK_DISABLED = 'true';
-}
-
-process.env.OTEL_LOG_LEVEL = 'info';
-process.env.OTEL_METRICS_EXPORTER = 'otlp';
+import { ValueType } from '@opentelemetry/api';
 
 export const configurator = new OpenTelemetryConfigurator({
     serviceName: 'psb-api-ipgeo',
@@ -18,4 +12,11 @@ export const configurator = new OpenTelemetryConfigurator({
 });
 
 configurator.start();
+
+export const requestDurationHistogram = configurator.meter().createHistogram('request.duration', {
+    description: 'Measures the duration of requests.',
+    unit: 'ms',
+    valueType: ValueType.DOUBLE,
+});
+
 /* c8 ignore stop */

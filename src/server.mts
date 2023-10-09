@@ -13,6 +13,7 @@ import { loggerMiddleware } from './middleware/logger.mjs';
 
 import { monitoringController } from './controllers/monitoring.mjs';
 import { geoIPController } from './controllers/geoip.mjs';
+import { requestDurationMiddleware } from './middleware/duration.mjs';
 
 export function configureApp(app: Express): Promise<ReturnType<typeof initializeContainer>> {
     return configurator
@@ -23,7 +24,7 @@ export function configureApp(app: Express): Promise<ReturnType<typeof initialize
                 const env = container.resolve('environment');
                 const base = dirname(fileURLToPath(import.meta.url));
 
-                app.use(scopedContainerMiddleware, loggerMiddleware);
+                app.use(requestDurationMiddleware, scopedContainerMiddleware, loggerMiddleware);
 
                 app.use('/monitoring', monitoringController());
 
