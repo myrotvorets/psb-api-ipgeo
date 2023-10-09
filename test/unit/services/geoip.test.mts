@@ -1,6 +1,7 @@
 import { TestDouble, func, matchers, replaceEsm, when } from 'testdouble';
 import { expect } from 'chai';
 import type { Reader } from 'maxmind';
+import { metrics } from '@opentelemetry/api';
 import type { GeoIPService } from '../../../src/services/geoip.mjs';
 import {
     cityResponseWithCountry,
@@ -44,7 +45,9 @@ describe('GeoIPService', function () {
         when(readFileSyncMock(matchers.isA(String) as string)).thenReturn(Buffer.from(''));
 
         geoip = await import('../../../src/services/geoip.mjs');
-        service = new geoip.GeoIPService();
+        service = new geoip.GeoIPService({
+            meter: metrics.getMeter('test'),
+        });
     });
 
     describe('setCityDatabase()', function () {

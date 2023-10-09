@@ -1,5 +1,5 @@
 import { requestLogger } from '@myrotvorets/express-request-logger';
-import { type LocalsWithContainer } from '../lib/container.mjs';
+import type { LocalsWithContainer } from '../lib/container.mjs';
 
 export const loggerMiddleware = requestLogger<never, never, never, never, LocalsWithContainer>({
     format: '[PSBAPI-ipgeo] :req[X-Request-ID]\t:method\t:url\t:status :res[content-length]\t:date[iso]\t:total-time',
