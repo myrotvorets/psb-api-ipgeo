@@ -8,6 +8,7 @@ export interface Container {
     geoIPService: GeoIPService;
     environment: ReturnType<typeof environment>;
     logger: ReturnType<(typeof configurator)['logger']>;
+    meter: ReturnType<(typeof configurator)['meter']>;
 }
 
 export interface RequestContainer {
@@ -29,10 +30,14 @@ function createLogger({ req }: RequestContainer): ReturnType<(typeof configurato
     return logger;
 }
 
-function createGeoIPService({ environment: env }: Container): GeoIPService {
-    const service = new GeoIPService();
-    service.setCityDatabase(env.GEOIP_CITY_FILE);
-    service.setISPDatabase(env.GEOIP_ISP_FILE);
+function createMeter(): ReturnType<(typeof configurator)['meter']> {
+    return configurator.meter();
+}
+
+function createGeoIPService({ environment, meter }: Container): GeoIPService {
+    const service = new GeoIPService({ meter });
+    service.setCityDatabase(environment.GEOIP_CITY_FILE);
+    service.setISPDatabase(environment.GEOIP_ISP_FILE);
     return service;
 }
 
@@ -43,6 +48,7 @@ export function initializeContainer(): typeof container {
         geoIPService: asFunction(createGeoIPService).singleton(),
         environment: asFunction(createEnvironment).singleton(),
         logger: asFunction(createLogger).scoped(),
+        meter: asFunction(createMeter).singleton(),
     });
 
     return container;

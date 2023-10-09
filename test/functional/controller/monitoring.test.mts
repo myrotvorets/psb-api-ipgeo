@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { type Express } from 'express';
+import type { Express } from 'express';
 import request from 'supertest';
 import type { HealthChecker } from '@cloudnative/health-connect';
 import { healthChecker, monitoringController } from '../../../src/controllers/monitoring.mjs';

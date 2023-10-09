@@ -1,7 +1,7 @@
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect } from 'chai';
-import { type Express } from 'express';
+import type { Express } from 'express';
 import request from 'supertest';
 import type { ErrorResponse } from '@myrotvorets/express-microservice-middlewares';
 import { configureApp, createApp } from '../../../src/server.mjs';

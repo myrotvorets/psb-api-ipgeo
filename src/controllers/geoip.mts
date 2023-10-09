@@ -1,6 +1,6 @@
 import { type NextFunction, type Request, type Response, Router } from 'express';
-import { type GeoResponse } from '../services/geoip.mjs';
-import { type LocalsWithContainer } from '../lib/container.mjs';
+import type { GeoResponse } from '../services/geoip.mjs';
+import type { LocalsWithContainer } from '../lib/container.mjs';
 
 interface GeolocateParams {
     ip: string;

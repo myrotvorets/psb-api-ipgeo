@@ -26,8 +26,6 @@ RUN \
     install -d -o nobody -g nobody /usr/share/GeoIP && \
     wget https://cdn.myrotvorets.center/m/geoip/GeoIP2-City.mmdb.enc?_=20220530 -U "Mozilla/5.0" -O /usr/share/GeoIP/GeoIP2-City.mmdb.enc && \
     wget https://cdn.myrotvorets.center/m/geoip/GeoIP2-ISP.mmdb.enc?_=20220530 -U "Mozilla/5.0" -O /usr/share/GeoIP/GeoIP2-ISP.mmdb.enc
-COPY healthcheck.sh entrypoint.sh /usr/local/bin/
-HEALTHCHECK --interval=60s --timeout=10s --start-period=5s --retries=3 CMD ["/usr/local/bin/healthcheck.sh"]
 USER nobody:nobody
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 COPY --chown=nobody:nobody ./src/specs ./specs

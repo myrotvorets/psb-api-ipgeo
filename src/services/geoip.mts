@@ -1,5 +1,7 @@
 import { readFileSync } from 'node:fs';
+import { type Histogram, type Meter, ValueType } from '@opentelemetry/api';
 import { type CityResponse, type IspResponse, Reader, type Response } from 'maxmind';
+import { observe } from '../lib/utils.mjs';
 
 export interface GeoCityResponse {
     cc: string | null;
@@ -22,9 +24,34 @@ export interface GeoPrefixes {
 
 export type GeoResponse = GeoCityResponse & GeoIspResponse & GeoPrefixes;
 
+type ConstructorParams = {
+    meter: Meter;
+};
+
 export class GeoIPService {
     private _city: Reader<CityResponse> | undefined;
     private _isp: Reader<IspResponse> | undefined;
+
+    private static _cityLookupHistogram: Histogram;
+    private static _ispLookupHistogram: Histogram;
+
+    public constructor({ meter }: ConstructorParams) {
+        if (!GeoIPService._cityLookupHistogram) {
+            GeoIPService._cityLookupHistogram = meter.createHistogram('geolocate.city.duration', {
+                description: 'Measures the duration of city lookups.',
+                unit: 'us',
+                valueType: ValueType.DOUBLE,
+            });
+        }
+
+        if (!GeoIPService._ispLookupHistogram) {
+            GeoIPService._ispLookupHistogram = meter.createHistogram('geolocate.isp.duration', {
+                description: 'Measures the duration of ISP lookups.',
+                unit: 'us',
+                valueType: ValueType.DOUBLE,
+            });
+        }
+    }
 
     public setCityDatabase(file: string): boolean {
         this._city = GeoIPService.readDatabaseSync(file);
@@ -50,8 +77,26 @@ export class GeoIPService {
     }
 
     public geolocate(ip: string): GeoResponse {
-        const [city, cprefix] = this._city ? this._city.getWithPrefixLength(ip) : [{} as CityResponse, 0];
-        const [isp, iprefix] = this._isp ? this._isp.getWithPrefixLength(ip) : [{} as IspResponse, 0];
+        let city: CityResponse | null = null;
+        let isp: IspResponse | null = null;
+        let cprefix = 0;
+        let iprefix = 0;
+
+        if (this._city) {
+            GeoIPService._cityLookupHistogram.record(
+                observe((reader: Reader<CityResponse>) => {
+                    [city, cprefix] = reader.getWithPrefixLength(ip);
+                }, this._city),
+            );
+        }
+
+        if (this._isp) {
+            GeoIPService._ispLookupHistogram.record(
+                observe((reader: Reader<IspResponse>) => {
+                    [isp, iprefix] = reader.getWithPrefixLength(ip);
+                }, this._isp),
+            );
+        }
 
         return {
             cprefix,
