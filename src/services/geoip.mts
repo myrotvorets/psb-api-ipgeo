@@ -37,7 +37,7 @@ export class GeoIPService {
 
     public constructor({ meter }: ConstructorParams) {
         if (!GeoIPService._cityLookupHistogram) {
-            GeoIPService._cityLookupHistogram = meter.createHistogram('geolocate.city.duration', {
+            GeoIPService._cityLookupHistogram = meter.createHistogram('psbapi.geolocate.city.duration', {
                 description: 'Measures the duration of city lookups.',
                 unit: 'us',
                 valueType: ValueType.DOUBLE,
@@ -45,7 +45,7 @@ export class GeoIPService {
         }
 
         if (!GeoIPService._ispLookupHistogram) {
-            GeoIPService._ispLookupHistogram = meter.createHistogram('geolocate.isp.duration', {
+            GeoIPService._ispLookupHistogram = meter.createHistogram('psbapi.geolocate.isp.duration', {
                 description: 'Measures the duration of ISP lookups.',
                 unit: 'us',
                 valueType: ValueType.DOUBLE,
