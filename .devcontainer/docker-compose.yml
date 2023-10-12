@@ -14,12 +14,11 @@ services:
       - SUPPRESS_SUPPORT=1
       - HTTPS=0
       - PORT=3000
-      - ENABLE_TRACING=1
       - OTEL_TRACES_EXPORTER=otlp
       - OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4317
       - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
       - OTEL_EXPORTER_OTLP_INSECURE=true
-      - OTEL_EXPORTER_OTLP_HEADERS=Authorization=basic b3RlbDpvdGVt
+      - OTEL_EXPORTER_OTLP_HEADERS=Authorization=basic b3RlbDpvdGVs
       - npm_config_userconfig=/usr/src/service/.npmrc.local
       - GEOIP_CITY_FILE=/usr/share/GeoIP/GeoIP2-City.mmdb
       - GEOIP_ISP_FILE=/usr/share/GeoIP/GeoIP2-ISP.mmdb
@@ -41,14 +40,7 @@ services:
       - ./.docker/otel-collector/otel-collector-config.yaml:/etc/otel-collector-config.yaml
 
   jaeger:
-    build:
-      context: .docker/jaeger
-      dockerfile: Dockerfile
-    environment:
-      - SPAN_STORAGE_TYPE=badger
-      - BADGER_EPHEMERAL=false
-      - BADGER_DIRECTORY_VALUE=/badger/data
-      - BADGER_DIRECTORY_KEY=/badger/key
+    image: ghcr.io/myrotvorets/codespaces/jaeger:latest
     restart: always
     volumes:
       - jaegerdata:/badger
