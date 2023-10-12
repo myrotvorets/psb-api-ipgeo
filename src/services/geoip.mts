@@ -24,9 +24,9 @@ export interface GeoPrefixes {
 
 export type GeoResponse = GeoCityResponse & GeoIspResponse & GeoPrefixes;
 
-type ConstructorParams = {
+interface ConstructorParams {
     meter: Meter;
-};
+}
 
 export class GeoIPService {
     private _city: Reader<CityResponse> | undefined;
@@ -36,6 +36,7 @@ export class GeoIPService {
     private static _ispLookupHistogram: Histogram;
 
     public constructor({ meter }: ConstructorParams) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive, the variable is not initialized initially
         if (!GeoIPService._cityLookupHistogram) {
             GeoIPService._cityLookupHistogram = meter.createHistogram('psbapi.geolocate.city.duration', {
                 description: 'Measures the duration of city lookups.',
@@ -44,6 +45,7 @@ export class GeoIPService {
             });
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive, the variable is not initialized initially
         if (!GeoIPService._ispLookupHistogram) {
             GeoIPService._ispLookupHistogram = meter.createHistogram('psbapi.geolocate.isp.duration', {
                 description: 'Measures the duration of ISP lookups.',
