@@ -1,5 +1,3 @@
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { expect } from 'chai';
 import type { Express } from 'express';
 import request from 'supertest';
@@ -12,22 +10,8 @@ describe('GeoIPController', function () {
 
     before(async function () {
         await container.dispose();
-        const env = { ...process.env };
-
-        const base = dirname(fileURLToPath(import.meta.url));
-        try {
-            process.env = {
-                NODE_ENV: 'test',
-                PORT: '3030',
-                GEOIP_CITY_FILE: join(base, '..', 'fixtures', 'GeoIP2-City-Test.mmdb'),
-                GEOIP_ISP_FILE: join(base, '..', 'fixtures', 'GeoIP2-ISP-Test.mmdb'),
-            };
-
-            app = createApp();
-            return configureApp(app);
-        } finally {
-            process.env = { ...env };
-        }
+        app = createApp();
+        return configureApp(app);
     });
 
     describe('Error handling', function () {
