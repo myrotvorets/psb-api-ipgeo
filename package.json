@@ -21,21 +21,21 @@
   "dependencies": {
     "@cloudnative/health-connect": "^2.1.0",
     "@myrotvorets/create-server": "^2.2.0",
-    "@myrotvorets/express-microservice-middlewares": "^1.6.0",
+    "@myrotvorets/express-microservice-middlewares": "^1.7.0",
     "@myrotvorets/express-request-logger": "^1.1.0",
     "@myrotvorets/oav-installer": "^4.1.0",
     "@myrotvorets/opentelemetry-configurator": "^6.4.2",
     "@opentelemetry/api": "^1.6.0",
-    "@opentelemetry/core": "^1.17.0",
-    "@opentelemetry/semantic-conventions": "^1.17.0",
+    "@opentelemetry/core": "^1.17.1",
+    "@opentelemetry/semantic-conventions": "^1.17.1",
     "awilix": "^8.0.1",
     "envalid": "^8.0.0",
     "express": "^4.18.2",
     "express-openapi-validator": "^5.0.6",
-    "maxmind": "^4.3.15"
+    "maxmind": "^4.3.16"
   },
   "devDependencies": {
-    "@myrotvorets/eslint-config-myrotvorets-ts": "^2.22.3",
+    "@myrotvorets/eslint-config-myrotvorets-ts": "^2.22.4",
     "@types/chai": "^4.3.7",
     "@types/chai-as-promised": "^7.1.6",
     "@types/express": "^4.17.19",
