@@ -41,6 +41,7 @@ function geolocateHandler(
     next: NextFunction,
 ): void {
     const service = res.locals.container.resolve('geoIPService');
+    res.header('Cache-Control', 'public, max-age=86400');
     res.json({
         success: true,
         response: service.geolocate(req.params.ip),
@@ -51,7 +52,7 @@ function geolocateHandler(
 
 export function geoIPController(): Router {
     const router = Router({ strict: true, caseSensitive: true });
-    router.get('/country', countryHandler);
     router.get('/geolocate/:ip', geolocateHandler);
+    router.get('/country', countryHandler);
     return router;
 }

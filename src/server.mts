@@ -27,9 +27,7 @@ export function configureApp(app: Express): Promise<ReturnType<typeof initialize
 
                 app.use('/monitoring', monitoringController());
 
-                await installOpenApiValidator(join(base, 'specs', 'ipgeo-private.yaml'), app, env.NODE_ENV, {
-                    ignorePaths: /^(\/$|\/specs\/)/u,
-                });
+                await installOpenApiValidator(join(base, 'specs', 'ipgeo-private.yaml'), app, env.NODE_ENV);
 
                 app.use(geoIPController(), notFoundMiddleware, errorMiddleware);
                 return container;
