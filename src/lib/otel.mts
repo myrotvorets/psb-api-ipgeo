@@ -1,19 +1,10 @@
 /* c8 ignore start */
-import {
-    OpenTelemetryConfigurator,
-    getExpressInstrumentations,
-    getFsInstrumentation,
-} from '@myrotvorets/opentelemetry-configurator';
 import { ValueType } from '@opentelemetry/api';
+import { getMeter } from '@myrotvorets/otel-utils';
 
-export const configurator = new OpenTelemetryConfigurator({
-    serviceName: 'psb-api-ipgeo',
-    instrumentations: [...getExpressInstrumentations(), getFsInstrumentation(true)],
-});
+const meter = getMeter();
 
-configurator.start();
-
-export const requestDurationHistogram = configurator.meter().createHistogram('psbapi.request.duration', {
+export const requestDurationHistogram = meter.createHistogram('psbapi.request.duration', {
     description: 'Measures the duration of requests.',
     unit: 'ms',
     valueType: ValueType.DOUBLE,

@@ -1,14 +1,14 @@
 import { AwilixContainer, asFunction, asValue, createContainer } from 'awilix';
 import type { NextFunction, Request, Response } from 'express';
+import { type Logger, type Meter, getLogger, getMeter } from '@myrotvorets/otel-utils';
 import { GeoIPService } from '../services/geoip.mjs';
 import { environment } from './environment.mjs';
-import { configurator } from './otel.mjs';
 
 export interface Container {
     geoIPService: GeoIPService;
     environment: ReturnType<typeof environment>;
-    logger: ReturnType<(typeof configurator)['logger']>;
-    meter: ReturnType<(typeof configurator)['meter']>;
+    logger: Logger;
+    meter: Meter;
 }
 
 export interface RequestContainer {
@@ -21,8 +21,8 @@ function createEnvironment(): ReturnType<typeof environment> {
     return environment(true);
 }
 
-function createLogger({ req }: RequestContainer): ReturnType<(typeof configurator)['logger']> {
-    const logger = configurator.logger();
+function createLogger({ req }: RequestContainer): Logger {
+    const logger = getLogger();
     logger.clearAttributes();
     logger.setAttribute('ip', req.ip);
     logger.setAttribute('req-id', req.get('X-Request-ID') ?? '');
@@ -30,8 +30,8 @@ function createLogger({ req }: RequestContainer): ReturnType<(typeof configurato
     return logger;
 }
 
-function createMeter(): ReturnType<(typeof configurator)['meter']> {
-    return configurator.meter();
+function createMeter(): Meter {
+    return getMeter();
 }
 
 function createGeoIPService({ environment, meter }: Container): GeoIPService {

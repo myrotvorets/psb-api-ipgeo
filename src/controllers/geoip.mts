@@ -50,7 +50,7 @@ function geolocateHandler(
 }
 
 export function geoIPController(): Router {
-    const router = Router({ strict: true });
+    const router = Router({ strict: true, caseSensitive: true });
     router.get('/country', countryHandler);
     router.get('/geolocate/:ip', geolocateHandler);
     return router;
