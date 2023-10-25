@@ -29,7 +29,7 @@ RUN \
 USER nobody:nobody
 COPY entrypoint.sh /usr/local/bin/
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+COPY --chown=nobody:nobody --from=build /srv/service/node_modules ./node_modules
 COPY --chown=nobody:nobody ./src/specs ./specs
 COPY --chown=nobody:nobody --from=build /srv/service/dist/ ./
-COPY --chown=nobody:nobody --from=build /srv/service/node_modules ./node_modules
 COPY --chown=nobody:nobody ./package.json ./
