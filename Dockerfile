@@ -5,10 +5,6 @@ RUN chown nobody:nobody /srv/service
 USER nobody:nobody
 COPY --chown=nobody:nobody ./package.json ./package-lock.json ./tsconfig.json .npmrc* ./
 RUN \
-    npm r --package-lock-only \
-        eslint @myrotvorets/eslint-config-myrotvorets-ts eslint-formatter-gha eslint-plugin-mocha \
-        mocha @types/mocha chai @types/chai chai-as-promised @types/chai-as-promised testdouble supertest @types/supertest c8 mocha-multi mocha-reporter-gha mocha-reporter-sonarqube \
-        nodemon ts-node && \
     npm ci --ignore-scripts --userconfig .npmrc.local && \
     rm -f .npmrc.local && \
     npm rebuild && \
