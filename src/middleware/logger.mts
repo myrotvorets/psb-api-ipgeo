@@ -5,7 +5,7 @@ import type { LocalsWithContainer } from '../lib/container.mjs';
 export const loggerMiddleware =
     process.env['NODE_ENV'] !== 'test'
         ? requestLogger<never, never, never, never, LocalsWithContainer>({
-              format: '[ipgeo] :ip :method :url :status :res[content-length] :date[iso] :total-time',
+              format: '[ipgeo] :remote-addr :method :url :status :res[content-length] :date[iso] :total-time',
               beforeLogHook: (err, _req, res, line, tokens): string => {
                   const message = `Status: ${tokens['status']} len: ${tokens['res[content-length]']} time: ${tokens['total-time']}`;
                   const logger = res.locals.container.resolve('logger');
