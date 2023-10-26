@@ -1,8 +1,16 @@
+/** @type {string[]} */
+let options;
+if (parseInt(process.versions.node.split('.')[0]) >= 21) {
+    options = ['loader=testdouble', 'loader=ts-node/esm', 'no-warnings'];
+} else {
+    options = ['loader=ts-node/esm', 'loader=testdouble', 'no-warnings'];
+}
+
 /** @type {import('mocha').MochaOptions} */
 module.exports = {
     recursive: true,
     extension: ['.test.mts'],
-    'node-option': ['loader=ts-node/esm', 'loader=testdouble', 'no-warnings'],
+    'node-option': options,
     require: 'mocha.setup.mjs',
     reporter: 'mocha-multi',
     'reporter-option': [
