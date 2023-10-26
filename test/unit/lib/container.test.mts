@@ -17,6 +17,11 @@ describe('Container', function () {
                 .to.be.an('object')
                 .that.has.property('NODE_ENV')
                 .that.is.a('string');
+
+            expect(container.resolve('tracer'))
+                .to.be.an('object')
+                .that.has.property('startActiveSpan')
+                .that.is.a('function');
         });
     });
 });

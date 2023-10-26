@@ -1,7 +1,7 @@
-import { TestDouble, func, matchers, replaceEsm, when } from 'testdouble';
+import { type TestDouble, func, matchers, replaceEsm, when } from 'testdouble';
 import { expect } from 'chai';
 import type { Reader } from 'maxmind';
-import type { GeoIPService } from '../../../src/services/geoip.mjs';
+import type { GeoIPService } from '../../services/geoipservice.mjs';
 import {
     cityResponseWithCountry,
     cityResponseWithRegisteredCountry,
@@ -13,7 +13,7 @@ import {
 } from './helpers.mjs';
 
 describe('GeoIPService', function () {
-    let geoip: typeof import('../../../src/services/geoip.mjs');
+    let geoip: typeof import('../../services/geoipservice.mjs');
     let service: GeoIPService;
     let readFileSyncMock: TestDouble<typeof import('node:fs').readFileSync>;
     let constructorMock: TestDouble<(...args: unknown[]) => unknown>;
@@ -43,7 +43,7 @@ describe('GeoIPService', function () {
 
         when(readFileSyncMock(matchers.isA(String) as string)).thenReturn(Buffer.from(''));
 
-        geoip = await import('../../../src/services/geoip.mjs');
+        geoip = await import('../../../src/services/geoipservice.mjs');
         service = new geoip.GeoIPService();
     });
 

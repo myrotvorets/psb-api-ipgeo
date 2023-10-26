@@ -22,4 +22,10 @@ export const ispLookupHistogram = meter.createHistogram('psbapi.geolocate.isp.du
     valueType: ValueType.DOUBLE,
 });
 
+export const countryCounter = meter.createCounter('psbapi.geolocate.country', {
+    description: 'Number of lookups by country',
+    unit: '{count}',
+    valueType: ValueType.INT,
+});
+
 /* c8 ignore stop */

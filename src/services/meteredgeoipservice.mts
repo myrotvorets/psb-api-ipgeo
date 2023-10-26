@@ -1,11 +1,34 @@
 import type { CityResponse, IspResponse } from 'maxmind';
+import { type Tracer, recordErrorToSpan } from '@myrotvorets/otel-utils';
 import { trace } from '@opentelemetry/api';
-import { cityLookupHistogram, ispLookupHistogram } from '../lib/metrics.mjs';
+import { cityLookupHistogram, countryCounter, ispLookupHistogram } from '../lib/metrics.mjs';
 import { observe } from '../lib/utils.mjs';
-import { GeoIPService } from './geoip.mjs';
-import type { GeoCityResponse, GeoIspResponse } from './geoipserviceinterface.mjs';
+import { GeoIPService } from './geoipservice.mjs';
+import type { GeoCityResponse, GeoIspResponse, GeoResponse } from './geoipserviceinterface.mjs';
 
+interface MeteredGeoIPServiceOptions {
+    tracer: Tracer;
+}
 export class MeteredGeoIPService extends GeoIPService {
+    private readonly _tracer: Tracer;
+
+    public constructor({ tracer }: MeteredGeoIPServiceOptions) {
+        super();
+        this._tracer = tracer;
+    }
+
+    public override geolocate(ip: string): GeoResponse {
+        return this._tracer.startActiveSpan(`geolocate ${ip}`, (span): GeoResponse => {
+            try {
+                return super.geolocate(ip);
+            } /* c8 ignore start */ catch (e) {
+                throw recordErrorToSpan(e, span);
+            } /* c8 ignore stop */ finally {
+                span.end();
+            }
+        });
+    }
+
     protected override geolocateCity(ip: string): [CityResponse | null, number] {
         let city: CityResponse | null = null;
         let prefix = 0;
@@ -39,6 +62,7 @@ export class MeteredGeoIPService extends GeoIPService {
             /* c8 ignore next */
             ?.addEvent(`GeoIP/City: Country: ${result.country ?? 'N/A'}, city: ${result.city ?? 'N/A'}`);
 
+        countryCounter.add(1, { country: result.country ?? 'ZZ' });
         return result;
     }
 
