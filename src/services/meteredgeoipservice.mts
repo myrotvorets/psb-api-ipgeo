@@ -62,7 +62,7 @@ export class MeteredGeoIPService extends GeoIPService {
             /* c8 ignore next */
             ?.addEvent(`GeoIP/City: Country: ${result.country ?? 'N/A'}, city: ${result.city ?? 'N/A'}`);
 
-        countryCounter.add(1, { country: result.country ?? 'ZZ' });
+        countryCounter.add(1, { country: result.cc ?? 'ZZ' });
         return result;
     }
 
