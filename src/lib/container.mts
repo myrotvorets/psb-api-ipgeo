@@ -21,6 +21,7 @@ function createEnvironment(): ReturnType<typeof environment> {
     return environment(true);
 }
 
+/* c8 ignore start */
 function createLogger({ req }: RequestContainer): Logger {
     const logger = getLogger();
     logger.clearAttributes();
@@ -31,6 +32,7 @@ function createLogger({ req }: RequestContainer): Logger {
     logger.setAttribute('request', `${req.method} ${req.url}`);
     return logger;
 }
+/* c8 ignore stop */
 
 function createMeter(): Meter {
     return getMeter();

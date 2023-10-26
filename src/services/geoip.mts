@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { type Histogram, type Meter, ValueType } from '@opentelemetry/api';
+import { type Histogram, type Meter, ValueType, trace } from '@opentelemetry/api';
 import { type CityResponse, type IspResponse, Reader, type Response } from 'maxmind';
 import { observe } from '../lib/utils.mjs';
 
@@ -133,15 +133,18 @@ export class GeoIPService {
                 null;
 
             id =
-                response.city?.geoname_id ??
+                response.city?.geoname_id /* c8 ignore start */ ??
                 response.represented_country?.geoname_id ??
                 response.country?.geoname_id ??
                 response.registered_country?.geoname_id ??
+                /* c8 ignore stop */
                 null;
 
             city = response.city?.names.en ?? null;
         }
 
+        /* c8 ignore next */
+        trace.getActiveSpan()?.addEvent(`GeoIP/City: Country: ${country ?? 'unknown'}, city: ${city ?? 'unknown'}`);
         return { cc, country, city, id };
     }
 
@@ -152,6 +155,11 @@ export class GeoIPService {
             isp = null,
             organization: org = null,
         } = response ?? {};
+
+        trace
+            .getActiveSpan()
+            /* c8 ignore next */
+            ?.addEvent(`GeoIP/ISP: ASN: ${asn ?? 'unknown'}, ISP: ${isp ?? 'unknown'}, Org: ${org ?? 'unknown'}`);
 
         return { asn, asnOrg, isp, org };
     }

@@ -22,7 +22,7 @@ function countryHandler(
     next: NextFunction,
 ): void {
     const service = res.locals.container.resolve('geoIPService');
-    const response = service.geolocate(req.ip ?? '127.0.0.1');
+    const response = service.geolocate(req.ip /* c8 ignore next */ ?? '127.0.0.1');
     res.header('Cache-Control', 'public, max-age=86400');
     res.json({
         success: true,
