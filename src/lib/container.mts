@@ -1,14 +1,14 @@
 import { AwilixContainer, asFunction, asValue, createContainer } from 'awilix';
 import type { NextFunction, Request, Response } from 'express';
-import { type Logger, type Meter, getLogger, getMeter } from '@myrotvorets/otel-utils';
-import { GeoIPService } from '../services/geoip.mjs';
+import { type Logger, getLogger } from '@myrotvorets/otel-utils';
 import { environment } from './environment.mjs';
+import { MeteredGeoIPService } from '../services/meteredgeoipservice.mjs';
+import { GeoIPServiceInterface } from '../services/geoipserviceinterface.mjs';
 
 export interface Container {
-    geoIPService: GeoIPService;
+    geoIPService: GeoIPServiceInterface;
     environment: ReturnType<typeof environment>;
     logger: Logger;
-    meter: Meter;
 }
 
 export interface RequestContainer {
@@ -34,12 +34,8 @@ function createLogger({ req }: RequestContainer): Logger {
 }
 /* c8 ignore stop */
 
-function createMeter(): Meter {
-    return getMeter();
-}
-
-function createGeoIPService({ environment, meter }: Container): GeoIPService {
-    const service = new GeoIPService({ meter });
+function createGeoIPService({ environment }: Container): GeoIPServiceInterface {
+    const service = new MeteredGeoIPService();
     service.setCityDatabase(environment.GEOIP_CITY_FILE);
     service.setISPDatabase(environment.GEOIP_ISP_FILE);
     return service;
@@ -52,7 +48,6 @@ export function initializeContainer(): typeof container {
         geoIPService: asFunction(createGeoIPService).singleton(),
         environment: asFunction(createEnvironment).singleton(),
         logger: asFunction(createLogger).scoped(),
-        meter: asFunction(createMeter).singleton(),
     });
 
     return container;

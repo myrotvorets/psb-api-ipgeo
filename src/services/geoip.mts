@@ -1,59 +1,10 @@
 import { readFileSync } from 'node:fs';
-import { type Histogram, type Meter, ValueType, trace } from '@opentelemetry/api';
 import { type CityResponse, type IspResponse, Reader, type Response } from 'maxmind';
-import { observe } from '../lib/utils.mjs';
+import type { GeoCityResponse, GeoIPServiceInterface, GeoIspResponse, GeoResponse } from './geoipserviceinterface.mjs';
 
-export interface GeoCityResponse {
-    cc: string | null;
-    country: string | null;
-    city: string | null;
-    id: number | null;
-}
-
-export interface GeoIspResponse {
-    asn: number | null;
-    asnOrg: string | null;
-    isp: string | null;
-    org: string | null;
-}
-
-export interface GeoPrefixes {
-    cprefix: number;
-    iprefix: number;
-}
-
-export type GeoResponse = GeoCityResponse & GeoIspResponse & GeoPrefixes;
-
-interface ConstructorParams {
-    meter: Meter;
-}
-
-export class GeoIPService {
-    private _city: Reader<CityResponse> | undefined;
-    private _isp: Reader<IspResponse> | undefined;
-
-    private static _cityLookupHistogram: Histogram;
-    private static _ispLookupHistogram: Histogram;
-
-    public constructor({ meter }: ConstructorParams) {
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive, the variable is not initialized initially
-        if (!GeoIPService._cityLookupHistogram) {
-            GeoIPService._cityLookupHistogram = meter.createHistogram('psbapi.geolocate.city.duration', {
-                description: 'Measures the duration of city lookups.',
-                unit: 'us',
-                valueType: ValueType.DOUBLE,
-            });
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive, the variable is not initialized initially
-        if (!GeoIPService._ispLookupHistogram) {
-            GeoIPService._ispLookupHistogram = meter.createHistogram('psbapi.geolocate.isp.duration', {
-                description: 'Measures the duration of ISP lookups.',
-                unit: 'us',
-                valueType: ValueType.DOUBLE,
-            });
-        }
-    }
+export class GeoIPService implements GeoIPServiceInterface {
+    protected _city: Reader<CityResponse> | undefined;
+    protected _isp: Reader<IspResponse> | undefined;
 
     public setCityDatabase(file: string): boolean {
         this._city = GeoIPService.readDatabaseSync(file);
@@ -79,36 +30,26 @@ export class GeoIPService {
     }
 
     public geolocate(ip: string): GeoResponse {
-        let city: CityResponse | null = null;
-        let isp: IspResponse | null = null;
-        let cprefix = 0;
-        let iprefix = 0;
-
-        if (this._city) {
-            GeoIPService._cityLookupHistogram.record(
-                observe((reader: Reader<CityResponse>) => {
-                    [city, cprefix] = reader.getWithPrefixLength(ip);
-                }, this._city),
-            );
-        }
-
-        if (this._isp) {
-            GeoIPService._ispLookupHistogram.record(
-                observe((reader: Reader<IspResponse>) => {
-                    [isp, iprefix] = reader.getWithPrefixLength(ip);
-                }, this._isp),
-            );
-        }
+        const [city, cprefix] = this.geolocateCity(ip);
+        const [isp, iprefix] = this.geolocateISP(ip);
 
         return {
             cprefix,
             iprefix,
-            ...GeoIPService.adaptCityResponse(city),
-            ...GeoIPService.adaptIspResponse(isp),
+            ...this.adaptCityResponse(city),
+            ...this.adaptIspResponse(isp),
         };
     }
 
-    protected static adaptCityResponse(response: CityResponse | null): GeoCityResponse {
+    protected geolocateCity(ip: string): [CityResponse | null, number] {
+        return this._city?.getWithPrefixLength(ip) ?? [null, 0];
+    }
+
+    protected geolocateISP(ip: string): [IspResponse | null, number] {
+        return this._isp?.getWithPrefixLength(ip) ?? [null, 0];
+    }
+
+    protected adaptCityResponse(response: CityResponse | null): GeoCityResponse {
         let cc: string | null = null,
             country: string | null = null,
             city: string | null = null,
@@ -143,23 +84,16 @@ export class GeoIPService {
             city = response.city?.names.en ?? null;
         }
 
-        /* c8 ignore next */
-        trace.getActiveSpan()?.addEvent(`GeoIP/City: Country: ${country ?? 'unknown'}, city: ${city ?? 'unknown'}`);
         return { cc, country, city, id };
     }
 
-    protected static adaptIspResponse(response: IspResponse | null): GeoIspResponse {
+    protected adaptIspResponse(response: IspResponse | null): GeoIspResponse {
         const {
             autonomous_system_number: asn = null,
             autonomous_system_organization: asnOrg = null,
             isp = null,
             organization: org = null,
         } = response ?? {};
-
-        trace
-            .getActiveSpan()
-            /* c8 ignore next */
-            ?.addEvent(`GeoIP/ISP: ASN: ${asn ?? 'unknown'}, ISP: ${isp ?? 'unknown'}, Org: ${org ?? 'unknown'}`);
 
         return { asn, asnOrg, isp, org };
     }

@@ -1,7 +1,7 @@
 import type { RequestHandler } from 'express';
 import { hrTime, hrTimeDuration, hrTimeToMilliseconds } from '@opentelemetry/core';
 import { SemanticAttributes } from '@opentelemetry/semantic-conventions';
-import { requestDurationHistogram } from '../lib/otel.mjs';
+import { requestDurationHistogram } from '../lib/metrics.mjs';
 
 export const requestDurationMiddleware: RequestHandler = (req, res, next): void => {
     const start = hrTime();
