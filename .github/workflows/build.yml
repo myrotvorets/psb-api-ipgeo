@@ -9,28 +9,23 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: ${{ !contains(github.event.head_commit.message, '[ci skip]') || github.event_name == 'workflow_dispatch' }}
-    name: Build and test
+    strategy:
+      matrix:
+        node:
+          - { name: Current, version: current }
+          - { name: LTS,     version: lts/* }
+    name: Build and test (Node ${{ matrix.node.name }})
+    permissions:
+      contents: read
+      packages: read
     steps:
       - name: Check out the code
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           submodules: true
 
-      - name: Set up Node.js environment
-        uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65 # v4.0.0
+      - name: Build and test
+        uses: myrotvorets/composite-actions/build-test-nodejs@master
         with:
-          node-version: lts/*
+          node-version: ${{ matrix.node.version }}
           registry-url: https://npm.pkg.github.com
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci --ignore-scripts
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Run postinstall scripts
-        run: npm rebuild && npm run prepare --if-present
-
-      - name: Run tests
-        run: npm test
