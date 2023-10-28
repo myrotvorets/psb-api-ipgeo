@@ -1,20 +1,20 @@
-import type { CityResponse, IspResponse } from 'maxmind';
 import { type Tracer, recordErrorToSpan } from '@myrotvorets/otel-utils';
 import { trace } from '@opentelemetry/api';
 import { cityLookupHistogram, countryCounter, ispLookupHistogram } from '../lib/metrics.mjs';
 import { observe } from '../lib/utils.mjs';
-import { GeoIPService } from './geoipservice.mjs';
+import { GeoIPService, type GeoIPServiceOptions } from './geoipservice.mjs';
 import type { GeoCityResponse, GeoIspResponse, GeoResponse } from './geoipserviceinterface.mjs';
 
-interface MeteredGeoIPServiceOptions {
+interface MeteredGeoIPServiceOptions extends GeoIPServiceOptions {
     tracer: Tracer;
 }
+
 export class MeteredGeoIPService extends GeoIPService {
     private readonly _tracer: Tracer;
 
-    public constructor({ tracer }: MeteredGeoIPServiceOptions) {
-        super();
-        this._tracer = tracer;
+    public constructor(opts: MeteredGeoIPServiceOptions) {
+        super(opts);
+        this._tracer = opts.tracer;
     }
 
     public override geolocate(ip: string): GeoResponse {
@@ -29,34 +29,32 @@ export class MeteredGeoIPService extends GeoIPService {
         });
     }
 
-    protected override geolocateCity(ip: string): [CityResponse | null, number] {
-        let city: CityResponse | null = null;
-        let prefix = 0;
+    protected override geolocateCity(ip: string): ReturnType<GeoIPService['geolocateCity']> {
+        let result: ReturnType<GeoIPService['geolocateCity']> = [null, 0];
 
         cityLookupHistogram.record(
             observe(() => {
-                [city, prefix] = super.geolocateCity(ip);
+                result = super.geolocateCity(ip);
             }),
         );
 
-        return [city, prefix];
+        return result;
     }
 
-    protected override geolocateISP(ip: string): [IspResponse | null, number] {
-        let isp: IspResponse | null = null;
-        let prefix = 0;
+    protected override geolocateISP(ip: string): ReturnType<GeoIPService['geolocateISP']> {
+        let result: ReturnType<GeoIPService['geolocateISP']> = [null, 0];
 
         ispLookupHistogram.record(
             observe(() => {
-                [isp, prefix] = super.geolocateISP(ip);
+                result = super.geolocateISP(ip);
             }),
         );
 
-        return [isp, prefix];
+        return result;
     }
 
-    protected override adaptCityResponse(response: CityResponse | null): GeoCityResponse {
-        const result = super.adaptCityResponse(response);
+    protected override adaptCityResponse(...params: Parameters<GeoIPService['adaptCityResponse']>): GeoCityResponse {
+        const result = super.adaptCityResponse(...params);
         trace
             .getActiveSpan()
             /* c8 ignore next */
@@ -66,8 +64,8 @@ export class MeteredGeoIPService extends GeoIPService {
         return result;
     }
 
-    protected override adaptIspResponse(response: IspResponse | null): GeoIspResponse {
-        const result = super.adaptIspResponse(response);
+    protected override adaptIspResponse(...params: Parameters<GeoIPService['adaptIspResponse']>): GeoIspResponse {
+        const result = super.adaptIspResponse(...params);
         trace
             .getActiveSpan()
             /* c8 ignore start */

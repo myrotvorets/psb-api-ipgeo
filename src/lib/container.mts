@@ -1,15 +1,20 @@
-import { AwilixContainer, asFunction, asValue, createContainer } from 'awilix';
+import { readFileSync } from 'node:fs';
+import { AwilixContainer, asClass, asFunction, asValue, createContainer } from 'awilix';
 import type { NextFunction, Request, Response } from 'express';
 import { type Logger, type Tracer, getLogger, getTracer } from '@myrotvorets/otel-utils';
 import { environment } from './environment.mjs';
+import type { GeoIPServiceInterface } from '../services/geoipserviceinterface.mjs';
+import type { CityResponse, IspResponse, MMDBReaderServiceInterface } from '../services/mmdbreaderserviceinterface.mjs';
 import { MeteredGeoIPService } from '../services/meteredgeoipservice.mjs';
-import { GeoIPServiceInterface } from '../services/geoipserviceinterface.mjs';
+import { MMDBReaderService } from '../services/mmdbreaderservice.mjs';
 
 export interface Container {
     geoIPService: GeoIPServiceInterface;
     environment: ReturnType<typeof environment>;
     tracer: Tracer;
     logger: Logger;
+    cityReader: MMDBReaderServiceInterface<CityResponse>;
+    ispReader: MMDBReaderServiceInterface<IspResponse>;
 }
 
 export interface RequestContainer {
@@ -39,21 +44,30 @@ function createTracer(): Tracer {
     return getTracer();
 }
 
-function createGeoIPService({ environment, tracer }: Container): GeoIPServiceInterface {
-    const service = new MeteredGeoIPService({ tracer });
-    service.setCityDatabase(environment.GEOIP_CITY_FILE);
-    service.setISPDatabase(environment.GEOIP_ISP_FILE);
-    return service;
+function createCityReader({ environment }: Container): MMDBReaderServiceInterface<CityResponse> {
+    const reader = new MMDBReaderService<CityResponse>();
+    const buf = readFileSync(environment.GEOIP_CITY_FILE);
+    reader.load(buf);
+    return reader;
+}
+
+function createIspReader({ environment }: Container): MMDBReaderServiceInterface<IspResponse> {
+    const reader = new MMDBReaderService<IspResponse>();
+    const buf = readFileSync(environment.GEOIP_ISP_FILE);
+    reader.load(buf);
+    return reader;
 }
 
 export type LocalsWithContainer = Record<'container', AwilixContainer<RequestContainer & Container>>;
 
 export function initializeContainer(): typeof container {
     container.register({
-        geoIPService: asFunction(createGeoIPService).singleton(),
+        geoIPService: asClass(MeteredGeoIPService).singleton(),
         environment: asFunction(createEnvironment).singleton(),
         logger: asFunction(createLogger).scoped(),
         tracer: asFunction(createTracer).singleton(),
+        cityReader: asFunction(createCityReader).singleton(),
+        ispReader: asFunction(createIspReader).singleton(),
     });
 
     return container;

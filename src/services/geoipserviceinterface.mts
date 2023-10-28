@@ -20,7 +20,5 @@ export interface GeoPrefixes {
 export type GeoResponse = GeoCityResponse & GeoIspResponse & GeoPrefixes;
 
 export interface GeoIPServiceInterface {
-    setCityDatabase(file: string): boolean;
-    setISPDatabase(file: string): boolean;
     geolocate(ip: string): GeoResponse;
 }

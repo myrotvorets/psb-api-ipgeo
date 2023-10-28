@@ -2,7 +2,6 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { reset } from 'testdouble';
 
 use(chaiAsPromised);
 
@@ -17,10 +16,6 @@ process.env = {
 
 /** @type {import('mocha').RootHookObject} */
 export const mochaHooks = {
-    /** @returns {void} */
-    afterEach() {
-        reset();
-    },
     afterAll() {
         process.env = { ...env };
     },
