@@ -1,32 +1,18 @@
-import { readFileSync } from 'node:fs';
-import { type CityResponse, type IspResponse, Reader, type Response } from 'maxmind';
 import type { GeoCityResponse, GeoIPServiceInterface, GeoIspResponse, GeoResponse } from './geoipserviceinterface.mjs';
+import type { CityResponse, IspResponse, MMDBReaderServiceInterface } from './mmdbreaderserviceinterface.mjs';
+
+export interface GeoIPServiceOptions {
+    cityReader: MMDBReaderServiceInterface<CityResponse>;
+    ispReader: MMDBReaderServiceInterface<IspResponse>;
+}
 
 export class GeoIPService implements GeoIPServiceInterface {
-    protected _city: Reader<CityResponse> | undefined;
-    protected _isp: Reader<IspResponse> | undefined;
+    protected _city: MMDBReaderServiceInterface<CityResponse>;
+    protected _isp: MMDBReaderServiceInterface<IspResponse>;
 
-    public setCityDatabase(file: string): boolean {
-        this._city = GeoIPService.readDatabaseSync(file);
-        return this._city !== undefined;
-    }
-
-    public setISPDatabase(file: string): boolean {
-        this._isp = GeoIPService.readDatabaseSync(file);
-        return this._isp !== undefined;
-    }
-
-    private static readDatabaseSync<T extends Response>(file: string): Reader<T> | undefined {
-        if (file) {
-            try {
-                const buf = readFileSync(file);
-                return new Reader(buf);
-            } catch {
-                /* Do nothing */
-            }
-        }
-
-        return undefined;
+    public constructor({ cityReader, ispReader }: GeoIPServiceOptions) {
+        this._city = cityReader;
+        this._isp = ispReader;
     }
 
     public geolocate(ip: string): GeoResponse {
@@ -42,11 +28,11 @@ export class GeoIPService implements GeoIPServiceInterface {
     }
 
     protected geolocateCity(ip: string): [CityResponse | null, number] {
-        return this._city?.getWithPrefixLength(ip) ?? [null, 0];
+        return this._city.getWithPrefixLength(ip);
     }
 
     protected geolocateISP(ip: string): [IspResponse | null, number] {
-        return this._isp?.getWithPrefixLength(ip) ?? [null, 0];
+        return this._isp.getWithPrefixLength(ip);
     }
 
     protected adaptCityResponse(response: CityResponse | null): GeoCityResponse {

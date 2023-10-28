@@ -1,4 +1,4 @@
-import type { CityResponse } from 'maxmind';
+import type { CityResponse } from '../../../src/services/mmdbreaderserviceinterface.mjs';
 import type { GeoResponse } from '../../../src/services/geoipserviceinterface.mjs';
 
 export const emptyGeoResponse: GeoResponse = {

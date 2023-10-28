@@ -11,7 +11,7 @@ describe('GeoIPController', function () {
     before(async function () {
         await container.dispose();
         app = createApp();
-        return configureApp(app);
+        configureApp(app);
     });
 
     describe('Error handling', function () {

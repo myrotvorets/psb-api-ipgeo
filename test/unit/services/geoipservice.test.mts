@@ -1,7 +1,7 @@
-import { type TestDouble, func, matchers, replaceEsm, when } from 'testdouble';
 import { expect } from 'chai';
-import type { Reader } from 'maxmind';
-import type { GeoIPService } from '../../services/geoipservice.mjs';
+import { mock } from 'node:test';
+import { GeoIPService } from '../../../src/services/geoipservice.mjs';
+import type { CityResponse, IspResponse } from '../../../src/services/mmdbreaderserviceinterface.mjs';
 import {
     cityResponseWithCountry,
     cityResponseWithRegisteredCountry,
@@ -11,78 +11,32 @@ import {
     geoResponseWithRegisteredCountry,
     geoResponseWithRepresentedCountry,
 } from './helpers.mjs';
+import { FakeMMDBReader } from './fakemmdbreader.mjs';
 
 describe('GeoIPService', function () {
-    let geoip: typeof import('../../services/geoipservice.mjs');
     let service: GeoIPService;
-    let readFileSyncMock: TestDouble<typeof import('node:fs').readFileSync>;
-    let constructorMock: TestDouble<(...args: unknown[]) => unknown>;
-    let getWithPrefixLengthMock: TestDouble<typeof Reader.prototype.getWithPrefixLength>;
+    let cityReader: FakeMMDBReader<CityResponse>;
+    let ispReader: FakeMMDBReader<IspResponse>;
 
     before(function () {
-        readFileSyncMock = func<typeof import('node:fs').readFileSync>();
-        constructorMock = func<(...args: unknown[]) => unknown>();
-        getWithPrefixLengthMock = func<typeof Reader.prototype.getWithPrefixLength>();
+        cityReader = new FakeMMDBReader();
+        ispReader = new FakeMMDBReader();
+        service = new GeoIPService({ cityReader, ispReader });
     });
 
-    beforeEach(async function () {
-        const fs = await import('node:fs');
-        await replaceEsm('node:fs', {
-            ...fs,
-            readFileSync: readFileSyncMock,
-        });
-
-        await replaceEsm('maxmind', {
-            Reader: class Reader {
-                public constructor(...args: unknown[]) {
-                    constructorMock(...args);
-                }
-                public getWithPrefixLength = getWithPrefixLengthMock;
-            },
-        });
-
-        when(readFileSyncMock(matchers.isA(String) as string)).thenReturn(Buffer.from(''));
-
-        geoip = await import('../../../src/services/geoipservice.mjs');
-        service = new geoip.GeoIPService();
+    afterEach(function () {
+        mock.reset();
     });
 
-    describe('setCityDatabase()', function () {
-        it('should not reject on maxmind failures', function () {
-            when(constructorMock(matchers.isA(Buffer))).thenThrow(new Error());
-            return expect(service.setCityDatabase('blah')).to.be.false;
-        });
-
-        it('should accept empty values', function () {
-            return expect(service.setCityDatabase('')).to.be.false;
-        });
-    });
-
-    describe('setISPDatabase()', function () {
-        it('should not reject on maxmind failures', function () {
-            when(constructorMock(matchers.isA(Buffer))).thenThrow(new Error());
-            return expect(service.setISPDatabase('blah')).to.be.false;
-        });
-
-        it('should accept empty values', function () {
-            return expect(service.setISPDatabase('')).to.be.false;
-        });
-    });
-
-    describe('geolocate()', function () {
-        beforeEach(function () {
-            service.setCityDatabase('blah');
-            service.setISPDatabase('blah');
-        });
-
+    describe('#geolocate()', function () {
         it('should handle null responses', function () {
-            when(getWithPrefixLengthMock(matchers.isA(String) as string)).thenReturn([null, 0]);
             const actual = service.geolocate('1.2.3.4');
             expect(actual).to.deep.equal(emptyGeoResponse);
         });
 
         it('should handle empty responses', function () {
-            when(getWithPrefixLengthMock(matchers.isA(String) as string)).thenReturn([{}, 0]);
+            cityReader.getWithPrefixLength.mock.mockImplementationOnce(() => [{}, 0]);
+            ispReader.getWithPrefixLength.mock.mockImplementationOnce(() => [{}, 0]);
             const actual = service.geolocate('1.2.3.4');
             expect(actual).to.deep.equal(emptyGeoResponse);
         });
@@ -94,16 +48,9 @@ describe('GeoIPService', function () {
             [cityResponseWithCountry, geoResponseWithCountry],
         ].forEach(([mock, expected]) => {
             it('should try records in the defined order', function () {
-                when(getWithPrefixLengthMock(matchers.isA(String) as string)).thenReturn([mock, 32], [null, 0]);
+                cityReader.getWithPrefixLength.mock.mockImplementationOnce(() => [mock, 32]);
                 const actual = service.geolocate('1.2.3.4');
                 expect(actual).to.deep.equal(expected);
-            });
-        });
-
-        it('should return empty results with no databases', function () {
-            return Promise.all([service.setCityDatabase(''), service.setISPDatabase('')]).then(() => {
-                const actual = service.geolocate('1.2.3.4');
-                expect(actual).to.deep.equal(emptyGeoResponse);
             });
         });
     });

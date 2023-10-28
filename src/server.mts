@@ -52,10 +52,7 @@ export function createApp(): Express {
 /* c8 ignore start */
 export async function run(): Promise<void> {
     const app = createApp();
-    const container = configureApp(app);
-    const env = container.resolve('environment');
-
-    const server = await createServer(app);
-    server.listen(env.PORT);
+    configureApp(app);
+    await createServer(app);
 }
 /* c8 ignore stop */

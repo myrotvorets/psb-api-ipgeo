@@ -22,6 +22,9 @@ describe('Container', function () {
                 .to.be.an('object')
                 .that.has.property('startActiveSpan')
                 .that.is.a('function');
+
+            expect(container.resolve('cityReader')).to.be.an('object').that.has.property('load').that.is.a('function');
+            expect(container.resolve('ispReader')).to.be.an('object').that.has.property('load').that.is.a('function');
         });
     });
 });
