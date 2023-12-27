@@ -21,7 +21,7 @@ describe('environment', function () {
         };
 
         process.env = {
-            NODE_ENV: `${expected.NODE_ENV}`,
+            NODE_ENV: expected.NODE_ENV,
             PORT: `${expected.PORT}`,
             EXTRA: 'xxx',
         };
@@ -39,7 +39,7 @@ describe('environment', function () {
         };
 
         process.env = {
-            NODE_ENV: `${expected.NODE_ENV}`,
+            NODE_ENV: expected.NODE_ENV,
             PORT: `${expected.PORT}`,
         };
 
