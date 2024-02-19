@@ -28,7 +28,7 @@ export function configureApp(app: Express): ReturnType<typeof initializeContaine
                 installOpenApiValidator(join(base, 'specs', 'ipgeo-private.yaml'), env.NODE_ENV),
                 geoIPController(),
                 notFoundMiddleware,
-                errorMiddleware,
+                errorMiddleware(),
             );
             return container;
         } /* c8 ignore start */ catch (e) {

@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import type { Express } from 'express';
 import request from 'supertest';
-import type { ErrorResponse } from '@myrotvorets/express-microservice-middlewares';
+import type { ApiErrorResponse } from '@myrotvorets/express-microservice-middlewares';
 import { configureApp, createApp } from '../../../src/server.mjs';
 import { container } from '../../../src/lib/container.mjs';
 
@@ -20,7 +20,7 @@ describe('GeoIPController', function () {
                 .get('/geolocate/256.0.0.1')
                 .expect(400)
                 .expect((res: request.Response) => {
-                    const body = res.body as ErrorResponse;
+                    const body = res.body as ApiErrorResponse;
                     expect(body)
                         .to.be.an('object')
                         .and.include({
