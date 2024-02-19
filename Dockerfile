@@ -20,8 +20,8 @@ RUN \
     chown nobody:nobody /srv/service && \
     apk add --no-cache openssl && \
     install -d -o nobody -g nobody /usr/share/GeoIP && \
-    wget https://cdn.myrotvorets.center/m/geoip/GeoIP2-City.mmdb.enc?_=20220530 -U "Mozilla/5.0" -O /usr/share/GeoIP/GeoIP2-City.mmdb.enc && \
-    wget https://cdn.myrotvorets.center/m/geoip/GeoIP2-ISP.mmdb.enc?_=20220530 -U "Mozilla/5.0" -O /usr/share/GeoIP/GeoIP2-ISP.mmdb.enc
+    wget https://cdn.myrotvorets.center/m/geoip/GeoIP2-City.mmdb.enc?_=20240219 -U "Mozilla/5.0" -O /usr/share/GeoIP/GeoIP2-City.mmdb.enc && \
+    wget https://cdn.myrotvorets.center/m/geoip/GeoIP2-ISP.mmdb.enc?_=20240219 -U "Mozilla/5.0" -O /usr/share/GeoIP/GeoIP2-ISP.mmdb.enc
 USER nobody:nobody
 COPY entrypoint.sh /usr/local/bin/
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
