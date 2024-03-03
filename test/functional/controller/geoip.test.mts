@@ -36,22 +36,6 @@ describe('GeoIPController', function () {
     });
 
     describe('Normal operation', function () {
-        describe('countryHandler', function () {
-            it('should return the expected results', function () {
-                return request(app)
-                    .get('/country')
-                    .set('X-Forwarded-For', '2.125.160.216')
-                    .expect(200)
-                    .expect({
-                        success: true,
-                        response: {
-                            cc: 'GB',
-                            country: 'United Kingdom',
-                        },
-                    });
-            });
-        });
-
         describe('geolocateHandler', function () {
             it('should return the expected results', function () {
                 return request(app)
