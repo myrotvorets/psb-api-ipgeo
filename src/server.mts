@@ -1,17 +1,24 @@
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import express, { type Express } from 'express';
+import express, { type Express, type Request, type Response } from 'express';
 import { installOpenApiValidator } from '@myrotvorets/oav-installer';
 import { errorMiddleware, notFoundMiddleware } from '@myrotvorets/express-microservice-middlewares';
 import { createServer, getTracer, recordErrorToSpan } from '@myrotvorets/otel-utils';
+import {
+    type LoggerFromRequestFunction,
+    errorLoggerHook,
+    requestDurationMiddleware,
+    requestLoggerMiddleware,
+} from '@myrotvorets/express-otel-middlewares';
 
-import { initializeContainer, scopedContainerMiddleware } from './lib/container.mjs';
-
-import { requestDurationMiddleware } from './middleware/duration.mjs';
-import { loggerMiddleware } from './middleware/logger.mjs';
+import { type LocalsWithContainer, initializeContainer, scopedContainerMiddleware } from './lib/container.mjs';
+import { requestDurationHistogram } from './lib/metrics.mjs';
 
 import { monitoringController } from './controllers/monitoring.mjs';
 import { geoIPController } from './controllers/geoip.mjs';
+
+const loggerFromRequest: LoggerFromRequestFunction = (req: Request) =>
+    (req.res as Response<never, LocalsWithContainer> | undefined)?.locals.container.resolve('logger');
 
 export function configureApp(app: Express): ReturnType<typeof initializeContainer> {
     return getTracer().startActiveSpan('configureApp', (span): ReturnType<typeof initializeContainer> => {
@@ -20,7 +27,11 @@ export function configureApp(app: Express): ReturnType<typeof initializeContaine
             const env = container.resolve('environment');
             const base = dirname(fileURLToPath(import.meta.url));
 
-            app.use(requestDurationMiddleware, scopedContainerMiddleware, loggerMiddleware);
+            app.use(
+                requestDurationMiddleware(requestDurationHistogram),
+                scopedContainerMiddleware,
+                requestLoggerMiddleware('ipgeo', loggerFromRequest),
+            );
 
             app.use('/monitoring', monitoringController());
 
@@ -28,7 +39,9 @@ export function configureApp(app: Express): ReturnType<typeof initializeContaine
                 installOpenApiValidator(join(base, 'specs', 'ipgeo-private.yaml'), env.NODE_ENV),
                 geoIPController(),
                 notFoundMiddleware,
-                errorMiddleware(),
+                errorMiddleware({
+                    beforeSendHook: errorLoggerHook(loggerFromRequest),
+                }),
             );
             return container;
         } /* c8 ignore start */ catch (e) {
