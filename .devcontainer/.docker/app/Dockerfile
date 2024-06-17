@@ -1,2 +1,2 @@
-FROM ghcr.io/myrotvorets/codespaces/psb-api-microservice-node:latest@sha256:a9fda769242ada25e4f271b05305f81eab4ac33063854179dae8ab0da263d1b4
+FROM ghcr.io/myrotvorets/codespaces/psb-api-microservice-node:latest@sha256:d34d33b3b898d407d142eba7ad158dd9b9499a00542f770ab14c63c03b02f5ea
 COPY rootfs /
