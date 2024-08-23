@@ -36,19 +36,21 @@ describe('GeoIPService', function () {
 
         it('should handle empty responses', function () {
             cityReader.getWithPrefixLength.mock.mockImplementationOnce(() => [{}, 0]);
-            ispReader.getWithPrefixLength.mock.mockImplementationOnce(() => [{}, 0]);
+            ispReader.getWithPrefixLength.mock.mockImplementationOnce(() => [null, 0]);
             const actual = service.geolocate('1.2.3.4');
             expect(actual).to.deep.equal(emptyGeoResponse);
         });
 
         // eslint-disable-next-line mocha/no-setup-in-describe
-        [
-            [cityResponseWithRepresentedCountry, geoResponseWithRepresentedCountry],
-            [cityResponseWithRegisteredCountry, geoResponseWithRegisteredCountry],
-            [cityResponseWithCountry, geoResponseWithCountry],
-        ].forEach(([mock, expected]) => {
+        (
+            [
+                [cityResponseWithRepresentedCountry, geoResponseWithRepresentedCountry],
+                [cityResponseWithRegisteredCountry, geoResponseWithRegisteredCountry],
+                [cityResponseWithCountry, geoResponseWithCountry],
+            ] as const
+        ).forEach(([mock, expected]) => {
             it('should try records in the defined order', function () {
-                cityReader.getWithPrefixLength.mock.mockImplementationOnce(() => [mock, 32]);
+                cityReader.getWithPrefixLength.mock.mockImplementationOnce(() => [mock, 32]); // NOSONAR
                 const actual = service.geolocate('1.2.3.4');
                 expect(actual).to.deep.equal(expected);
             });
