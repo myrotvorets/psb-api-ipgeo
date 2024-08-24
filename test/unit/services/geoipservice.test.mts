@@ -1,3 +1,5 @@
+/* eslint-disable sonarjs/no-nested-functions */
+/* eslint-disable sonarjs/no-hardcoded-ip */
 import { expect } from 'chai';
 import { mock } from 'node:test';
 import { GeoIPService } from '../../../src/services/geoipservice.mjs';

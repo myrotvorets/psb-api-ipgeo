@@ -13,6 +13,7 @@ describe('utils', function () {
 
             const result = observe(fn, ...args);
             expect(result).to.be.a('number');
+            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
             expect(called).to.be.true;
         });
     });
