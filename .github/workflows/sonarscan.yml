@@ -27,7 +27,7 @@ jobs:
           egress-policy: block
           allowed-endpoints: >
             api.github.com:443
-            ea6ne4j2sb.execute-api.eu-central-1.amazonaws.com
+            binaries.sonarsource.com:443
             github.com:443
             npm.pkg.github.com:443
             objects.githubusercontent.com:443
