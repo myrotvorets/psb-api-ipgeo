@@ -1,17 +1,18 @@
+import type { RequestListener } from 'node:http';
 import { expect } from 'chai';
-import type { Express } from 'express';
 import request from 'supertest';
 import type { ApiErrorResponse } from '@myrotvorets/express-microservice-middlewares';
 import { configureApp, createApp } from '../../../src/server.mjs';
 import { container } from '../../../src/lib/container.mjs';
 
 describe('GeoIPController', function () {
-    let app: Express;
+    let app: RequestListener;
 
     before(async function () {
         await container.dispose();
-        app = createApp();
-        configureApp(app);
+        const application = createApp();
+        configureApp(application);
+        app = application as RequestListener;
     });
 
     describe('Error handling', function () {
