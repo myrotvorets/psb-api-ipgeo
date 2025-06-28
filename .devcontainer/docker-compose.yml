@@ -72,7 +72,7 @@ services:
       - ./.docker/grafana/dashboards/ipgeo.json:/var/lib/grafana/dashboards/ipgeo.json
 
   swagger:
-    image: swaggerapi/swagger-ui:v5.25.2@sha256:e4e00b4d4c98c754c856e0b948185b29b06a7e375bdb91ecddc813e52506598d
+    image: swaggerapi/swagger-ui:v5.25.3@sha256:77f03599e686f6411258bce4081cc32fd981eff6c332f0db1aaeae859e08a1f1
     environment:
       - SWAGGER_JSON_URL=/specs/ipgeo-private.yaml
       - BASE_URL=/swagger
