@@ -28,7 +28,7 @@ services:
     working_dir: /usr/src/service
 
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.140.1@sha256:5901567d6f684547bafee53f02403869b5655e13a4e0af65aa6ae9f6301075d9
+    image: otel/opentelemetry-collector-contrib:0.141.0@sha256:b14234c4bc1b7364629af272e564913bb57bdc9736d45b8b6db5ab3417dc75f9
     command:
       - "--config=/etc/otel-collector-config.yaml"
     depends_on:
@@ -46,7 +46,7 @@ services:
       - jaegerdata:/badger
 
   victoriametrics:
-    image: victoriametrics/victoria-metrics:v1.127.0@sha256:de28e23b0255f0500e96730125a7e5c930c5442aec315063fc7696862ba9c2c1
+    image: victoriametrics/victoria-metrics:v1.131.0@sha256:97448e1cc7751c27d068dd8d1a1a2a3e0c1bd50c4a160d444eb0566716b20eb4
     command:
       - "--storageDataPath=/storage"
       - "--httpListenAddr=:8428"
@@ -55,13 +55,13 @@ services:
       - vmdata:/storage
 
   loki:
-    image: grafana/loki:3.5.5@sha256:31628519045e7f28692a7ae73b4a3fd293dccb425585ed5d16ceea3b5c9592e6
+    image: grafana/loki:3.6.3@sha256:cd6e176883a90c21755f0315688668991634143423f75bdedfef41441b0fdc3c
     command:
       - "-config.file=/etc/loki/local-config.yaml"
     restart: always
 
   grafana:
-    image: grafana/grafana:12.2.0@sha256:74144189b38447facf737dfd0f3906e42e0776212bf575dc3334c3609183adf7
+    image: grafana/grafana:12.3.0@sha256:70d9599b186ce287be0d2c5ba9a78acb2e86c1a68c9c41449454d0fc3eeb84e8
     depends_on:
       - victoriametrics
       - loki
@@ -72,7 +72,7 @@ services:
       - ./.docker/grafana/dashboards/ipgeo.json:/var/lib/grafana/dashboards/ipgeo.json
 
   swagger:
-    image: swaggerapi/swagger-ui:v5.29.3@sha256:9c2688be89e275bbc80b85ffedf52883233cbd1ec4636faff3eb618b6420acf2
+    image: swaggerapi/swagger-ui:v5.31.0@sha256:080804ac62c9d5d358662cc6f0db96ba0be76af7af393014a1a1305d967298cc
     environment:
       - SWAGGER_JSON_URL=/specs/ipgeo-private.yaml
       - BASE_URL=/swagger
