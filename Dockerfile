@@ -13,7 +13,7 @@ COPY --chown=nobody:nobody ./src ./src
 RUN npm run build -- --declaration false --removeComments true --sourceMap false
 RUN npm prune --omit=dev
 
-FROM myrotvorets/node-min@sha256:904def01fa41a47e8978db2e3ada1be4c03663760e207ac0ef579d8f88a02f43
+FROM myrotvorets/node-min@sha256:caa9741efe306e8f6378d0b8fdf6e7e771a58879b028bce83e411c46574300d1
 USER root
 WORKDIR /srv/service
 RUN \
