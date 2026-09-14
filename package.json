@@ -32,7 +32,7 @@
     "awilix": "^13.0.3",
     "envalid": "^8.1.1",
     "express": "^5.2.1",
-    "mmdb-lib": "^3.0.2"
+    "mmdb-lib": "^3.0.3"
   },
   "devDependencies": {
     "@myrotvorets/eslint-config-myrotvorets-ts": "^3.1.1",
