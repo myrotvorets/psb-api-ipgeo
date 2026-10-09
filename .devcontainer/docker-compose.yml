@@ -28,7 +28,7 @@ services:
     working_dir: /usr/src/service
 
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.147.0@sha256:e7c92c715f28ff142f3bcaccd4fc5603cf4c71276ef09954a38eb4038500a5a5
+    image: otel/opentelemetry-collector-contrib:0.162.0@sha256:39923a8e431bd1f57be82411999d389fcfe40857492e4365456d97a4c1f74be6
     command:
       - "--config=/etc/otel-collector-config.yaml"
     depends_on:
